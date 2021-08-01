@@ -1,0 +1,16 @@
+# Environment for Alice TRF analysis
+# usage: $ conda env create --file=environment.yml
+name: eelbrain
+channels:
+- conda-forge
+dependencies:
+- eelbrain >= 0.36
+- pip
+- ipython
+- jupyter
+- ipywidgets
+- jupytext
+- seaborn
+- pip:
+  - https://github.com/christianbrodbeck/TRF-Tools/archive/win.zip
+  - https://github.com/christianbrodbeck/gammatone/archive/fmax.zip
