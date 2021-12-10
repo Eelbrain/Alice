@@ -42,6 +42,14 @@ word_onsets = [eelbrain.event_impulse_predictor(gt.time, ds=ds, name='word') for
 # Function and content word impulses based on the boolean variables in the word-tables
 word_lexical = [eelbrain.event_impulse_predictor(gt.time, value='lexical', ds=ds, name='lexical') for gt, ds in zip(gammatone, word_tables)]
 word_nlexical = [eelbrain.event_impulse_predictor(gt.time, value='nlexical', ds=ds, name='non_lexical') for gt, ds in zip(gammatone, word_tables)]
+# Get syntactical surprisal values 
+word_NGRAM = [eelbrain.event_impulse_predictor(gt.time, value='NGRAM', ds=ds, name='ngram') for gt, ds in zip(gammatone, word_tables)]
+word_RNN = [eelbrain.event_impulse_predictor(gt.time, value='RNN', ds=ds, name='rnn') for gt, ds in zip(gammatone, word_tables)]
+word_CFG = [eelbrain.event_impulse_predictor(gt.time, value='CFG', ds=ds, name='cfg') for gt, ds in zip(gammatone, word_tables)]
+
+# Word surprisal
+subtlex_tables = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~subtlex.pickle') for stimulus in STIMULI]
+word_surprisal = [eelbrain.event_impulse_predictor(gt.time, value='surprisal_5gram', ds=ds, name='surprisal') for gt, ds in zip(gammatone, subtlex_tables)]
 
 # Extract the duration of the stimuli, so we can later match the EEG to the stimuli
 durations = [gt.time.tmax for stimulus, gt in zip(STIMULI, gammatone)]
@@ -59,6 +67,17 @@ models = {
     'words+lexical': [word_onsets, word_lexical, word_nlexical],
     'acoustic+words': [gammatone, gammatone_onsets, word_onsets],
     'acoustic+words+lexical': [gammatone, gammatone_onsets, word_onsets, word_lexical, word_nlexical],
+    'surprisal': [word_surprisal],
+    'acoustic+surprisal': [gammatone, gammatone_onsets, word_surprisal],
+    'acoustic+words+surprisal': [gammatone, gammatone_onsets, word_onsets, word_surprisal],
+    # Models with syntactic surprisal
+    'acoustic+words+rnn': [gammatone, gammatone_onsets, word_onsets, word_RNN],
+    'acoustic+words+ngram': [gammatone, gammatone_onsets, word_onsets, word_NGRAM],
+    'acoustic+words+cfg': [gammatone, gammatone_onsets, word_onsets, word_CFG], 
+    'acoustic+words+cfg+ngram+rnn': [gammatone, gammatone_onsets, word_onsets, word_CFG, word_NGRAM, word_RNN],
+    'acoustic+words+cfg+rnn': [gammatone, gammatone_onsets, word_onsets, word_CFG, word_RNN],
+    'acoustic+words+cfg+ngram': [gammatone, gammatone_onsets, word_onsets, word_CFG, word_NGRAM],
+    'acoustic+words+ngram+rnn': [gammatone, gammatone_onsets, word_onsets, word_NGRAM, word_RNN]
 }
 
 # Estimate TRFs
