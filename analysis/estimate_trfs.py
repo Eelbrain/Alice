@@ -64,40 +64,41 @@ models = {
 # Estimate TRFs
 # -------------
 # Loop through subjects to estimate TRFs
-for subject in SUBJECTS:
-    subject_trf_dir = TRF_DIR / subject
-    subject_trf_dir.mkdir(exist_ok=True)
-    # Generate all TRF paths so we can check whether any new TRFs need to be estimated
-    trf_paths = {model: subject_trf_dir / f'{subject} {model}.pickle' for model in models}
-    # Skip this subject if all files already exist
-    if all(path.exists() for path in trf_paths.values()):
-        continue
-    # Load the EEG data
-    raw = mne.io.read_raw(EEG_DIR / subject / f'{subject}_alice-raw.fif', preload=True)
-    # Band-pass filter the raw data between 0.2 and 20 Hz
-    raw.filter(0.5, 20)
-    # Interpolate bad channels
-    raw.interpolate_bads()
-    # Extract the events marking the stimulus presentation from the EEG file
-    events = eelbrain.load.fiff.events(raw)
-    # Not all subjects have all trials; determine which stimuli are present
-    trial_indexes = [STIMULI.index(stimulus) for stimulus in events['event']]
-    # Extract the EEG data segments corresponding to the stimuli
-    trial_durations = [durations[i] for i in trial_indexes]
-    eeg = eelbrain.load.fiff.variable_length_epochs(events, -0.100, trial_durations, decim=5, connectivity='auto')
-    # Since trials are of unequal length, we will concatenate them for the TRF estimation.
-    eeg_concatenated = eelbrain.concatenate(eeg)
-    for model, predictors in models.items():
-        path = trf_paths[model]
-        # Skip if this file already exists
-        if path.exists():
+if __name__ == '__main__':
+    for subject in SUBJECTS:
+        subject_trf_dir = TRF_DIR / subject
+        subject_trf_dir.mkdir(exist_ok=True)
+        # Generate all TRF paths so we can check whether any new TRFs need to be estimated
+        trf_paths = {model: subject_trf_dir / f'{subject} {model}.pickle' for model in models}
+        # Skip this subject if all files already exist
+        if all(path.exists() for path in trf_paths.values()):
             continue
-        print(f"Estimating: {subject} ~ {model}")
-        # Select and concetenate the predictors corresponding to the EEG trials
-        predictors_concatenated = []
-        for predictor in predictors:
-            predictors_concatenated.append(eelbrain.concatenate([predictor[i] for i in trial_indexes]))
-        # Fit the mTRF
-        trf = eelbrain.boosting(eeg_concatenated, predictors_concatenated, -0.100, 1.000, error='l1', basis=0.050, partitions=5, test=1, selective_stopping=True)
-        # Save the TRF for later analysis
-        eelbrain.save.pickle(trf, path)
+        # Load the EEG data
+        raw = mne.io.read_raw(EEG_DIR / subject / f'{subject}_alice-raw.fif', preload=True)
+        # Band-pass filter the raw data between 0.2 and 20 Hz
+        raw.filter(0.5, 20)
+        # Interpolate bad channels
+        raw.interpolate_bads()
+        # Extract the events marking the stimulus presentation from the EEG file
+        events = eelbrain.load.fiff.events(raw)
+        # Not all subjects have all trials; determine which stimuli are present
+        trial_indexes = [STIMULI.index(stimulus) for stimulus in events['event']]
+        # Extract the EEG data segments corresponding to the stimuli
+        trial_durations = [durations[i] for i in trial_indexes]
+        eeg = eelbrain.load.fiff.variable_length_epochs(events, -0.100, trial_durations, decim=5, connectivity='auto')
+        # Since trials are of unequal length, we will concatenate them for the TRF estimation.
+        eeg_concatenated = eelbrain.concatenate(eeg)
+        for model, predictors in models.items():
+            path = trf_paths[model]
+            # Skip if this file already exists
+            if path.exists():
+                continue
+            print(f"Estimating: {subject} ~ {model}")
+            # Select and concetenate the predictors corresponding to the EEG trials
+            predictors_concatenated = []
+            for predictor in predictors:
+                predictors_concatenated.append(eelbrain.concatenate([predictor[i] for i in trial_indexes]))
+            # Fit the mTRF
+            trf = eelbrain.boosting(eeg_concatenated, predictors_concatenated, -0.100, 1.000, error='l1', basis=0.050, partitions=5, test=1, selective_stopping=True)
+            # Save the TRF for later analysis
+            eelbrain.save.pickle(trf, path)
