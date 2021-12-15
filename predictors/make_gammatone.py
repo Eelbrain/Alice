@@ -13,6 +13,5 @@ for i in range(1, 13):
     if dst.exists():
         continue
     wav = load.wav(STIMULUS_DIR / f'{i}.wav')
-    gt = gammatone_bank(wav, 20, 5000, 256, location='left', pad=False)
-    gt = resample(gt, 1000)
+    gt = gammatone_bank(wav, 20, 5000, 256, location='left', pad=False, tstep=0.001)
     save.pickle(gt, dst)
