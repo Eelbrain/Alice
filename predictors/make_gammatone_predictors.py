@@ -17,7 +17,7 @@ for i in range(1, 13):
     gt = gt.clip(0, out=gt)
     # apply log transform
     gt = (gt + 1).log()
-    # generate on- and offset detector model
+    # generate onset detector model
     gt_on = edge_detector(gt, c=30)
 
     # 1 band predictors
