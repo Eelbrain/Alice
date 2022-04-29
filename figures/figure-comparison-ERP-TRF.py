@@ -91,8 +91,8 @@ ds_merged['norm_pattern'] = eelbrain.combine([normalize_trf(pattern) for pattern
 ds_merged['norm_pattern_Fz'] = ds_merged['norm_pattern'].sub(sensor='1')
 
 ## NEW FIGURE 
-figure = pyplot.figure(figsize=(7.5, 7.5))
-gridspec = figure.add_gridspec(8,6, height_ratios=[2, 3, 2, 3,2,2,2,2], left=0.1, right=0.95, hspace=0.3)
+figure = pyplot.figure(figsize=(8.5, 7.5))
+gridspec = figure.add_gridspec(8,6, height_ratios=[2, 3, 3, 5,2,2,2,2], left=0.1, right=0.95, hspace=0.3)
 topo_args = dict(clip='circle')
 det_args = dict(**topo_args, vmax=0.06, cmap='lux-a')
 cbar_args = dict(label='Pearson\'s r', ticks=2, h=2)
@@ -169,8 +169,9 @@ topographies = [res.masked_difference().sub(time=time) for time in times]
 topomaps = eelbrain.plot.Topomap(topographies, axes=c_axes, head_radius=0.45, clip='circle', axtitle=None)
 b = topomaps.plot_colorbar(left_of=c_axes[0], ticks={-1:'-1', 0:'0', +1: '1'}, label='ERP - TRF', label_rotation=90)
 
-figure.text(0, 0.96, 'A) Comparison ERP and TRF', size=10)
-figure.text(0, 0.42, 'B) Corresponding topographies', size=10)
+figure.text(0, 0.96, 'A) Comparison ERP and TRF at single channel', size=10)
+figure.text(0, 0.63, 'B) Comparison ERP and TRF across channels', size=10)
+figure.text(0, 0.39, 'C) Corresponding topographies', size=10)
 
 figure
 
