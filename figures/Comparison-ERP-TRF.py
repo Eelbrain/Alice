@@ -41,7 +41,7 @@ subjects = [subject for subject in os.listdir(TRF_DIR) if subject.startswith('S'
 # (1) GET THE ERP RESPONSE TO A WORD ONSET
 cases = []
 for subject in subjects:
-    epochs = eelbrain.load.unpickle(f"{EPOCH_DIR}/{subject}/{subject}_epoched_word.pickle")
+    epochs = eelbrain.load.unpickle(EPOCH_DIR / subject / f'{subject}_epoched_word.pickle')
     
     # get erp and normalize amplitude
     epochs['eeg'] -= epochs['eeg'].mean('time')
@@ -55,7 +55,7 @@ data_erp = eelbrain.Dataset.from_caselist(column_names, cases)
 # (2) GET THE TRF TO WORD ONSETS WHEN CONTOLLED FOR ACOUSTIC REPRESENTATIONS
 cases = []
 for subject in subjects:
-    mtrf = eelbrain.load.unpickle(f"{TRF_DIR}/{subject}/{subject} acoustic+words.pickle")
+    mtrf = eelbrain.load.unpickle(TRF_DIR/ subject / f'{subject} acoustic+words.pickle')
     trf = mtrf.h[-1]
     cases.append([subject, trf])
 column_names = ['subject', 'trf']
