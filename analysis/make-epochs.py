@@ -36,7 +36,6 @@ tstop = 1
 # +
 # Load stimuli
 # ------------
-# Make sure to name the stimuli so that the TRFs can later be distinguished
 # Load the gammatone-spectrograms; use the time axis of these as reference
 gammatone = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-8.pickle') for stimulus in STIMULI]
 # Resample the spectrograms to 100 Hz (time-step = 0.01 s), which we will use for TRFs
@@ -44,17 +43,9 @@ gammatone = [x.bin(0.01, dim='time', label='start') for x in gammatone]
 # Pad onset with 100 ms and offset with 1 second; make sure to give the predictor a unique name as that will make it easier to identify the TRF later
 gammatone = [trftools.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='gammatone') for x in gammatone]
 
-subtlex_tables = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~subtlex.pickle') for stimulus in STIMULI]
-word_surprisal = [eelbrain.event_impulse_predictor(gt.time, value='surprisal_5gram', ds=ds, name='surprisal') for gt, ds in zip(gammatone, subtlex_tables)]
-
+# load word onsets - gammatone used as time axis reference
 word_tables = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~word.pickle') for stimulus in STIMULI]
 word_onsets = [eelbrain.event_impulse_predictor(gt.time, ds=ds, name='word') for gt, ds in zip(gammatone, word_tables)]
-# Get syntactical surprisal values 
-word_NGRAM = [eelbrain.event_impulse_predictor(gt.time, value='NGRAM', ds=ds, name='ngram') for gt, ds in zip(gammatone, word_tables)]
-word_RNN = [eelbrain.event_impulse_predictor(gt.time, value='RNN', ds=ds, name='rnn') for gt, ds in zip(gammatone, word_tables)]
-word_CFG = [eelbrain.event_impulse_predictor(gt.time, value='CFG', ds=ds, name='cfg') for gt, ds in zip(gammatone, word_tables)]
-
-word_lexical = [eelbrain.event_impulse_predictor(gt.time, value='lexical', ds=ds, name='lexical') for gt, ds in zip(gammatone, word_tables)]
 # -
 
 # Extract the duration of the stimuli, so we can later match the EEG to the stimuli
@@ -88,15 +79,7 @@ for subject in SUBJECTS:
     
     # Get corresponding word onsets
     word_onset_predictor = eelbrain.concatenate([word_onsets[i] for i in trial_indexes])
-    word_surprisal_predictor = eelbrain.concatenate([word_surprisal[i] for i in trial_indexes])
-    
-    rnn_predictor = eelbrain.concatenate([word_RNN[i] for i in trial_indexes])
-    cfg_predictor = eelbrain.concatenate([word_CFG[i] for i in trial_indexes])
-    ngram_preditor = eelbrain.concatenate([word_NGRAM[i] for i in trial_indexes])
-    word_surprisal_predictor = eelbrain.concatenate([word_surprisal[i] for i in trial_indexes])
-    
-    content_word_predictor = eelbrain.concatenate([word_lexical[i] for i in trial_indexes])
-    
+
     if word_onset_predictor.time.tstop > eeg_concatenated.time.tstop: 
         print('error with subject %s' % subject)
 
@@ -114,11 +97,9 @@ for subject in SUBJECTS:
         current_epoch = eeg_concatenated.sub(time=(onset_time+tstart, onset_time+tstop))
         # change dimension (tmin to tstart)
         current_epoch = eelbrain.set_tmin(current_epoch, tmin = tstart)
-        rows.append([current_epoch, word_surprisal_predictor.sub(time=onset_time), trial_idx + 1, 
-                    rnn_predictor.sub(time=onset_time), ngram_preditor.sub(time=onset_time), cfg_predictor.sub(time=onset_time), 
-                    content_word_predictor.sub(time=onset_time)])
+        rows.append([current_epoch, trial_idx + 1])
 
-    column_names = ['eeg', 'surprisal', 'trial_idx', 'rnn','ngram','cfg', 'content_word']
+    column_names = ['eeg', 'trial_idx']
     ds = eelbrain.Dataset.from_caselist(column_names, rows)
     eelbrain.save.pickle(ds, epoch_path)
 

@@ -18,6 +18,7 @@ from pathlib import Path
 import copy
 import numpy as np
 from matplotlib import pyplot
+import os
 
 # +
 # Data locations
@@ -37,6 +38,7 @@ DST.mkdir(exist_ok=True)
 
 # get all subjects
 subjects = [subject for subject in os.listdir(TRF_DIR) if subject.startswith('S') ]
+assert os.path.exists(EPOCH_DIR), "Epoch directory is not found. Please, run script analysis/make-epochs.py to create the different epochs per subject."
 
 # (1) GET THE ERP RESPONSE TO A WORD ONSET
 cases = []
