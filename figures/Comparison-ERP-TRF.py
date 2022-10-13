@@ -28,8 +28,6 @@ STIMULI_DIR = DATA_ROOT / 'stimuli'
 TRF_DIR = DATA_ROOT / 'TRFs'
 EPOCH_DIR = DATA_ROOT / 'Epochs'
 
-tstart = -0.1
-tstop = 1
 # -
 
 # Where to save the figure
@@ -46,9 +44,9 @@ for subject in subjects:
     epochs = eelbrain.load.unpickle(EPOCH_DIR / subject / f'{subject}_epoched_word.pickle')
     
     # get erp and normalize amplitude
-    epochs['eeg'] -= epochs['eeg'].mean('time')
-    epochs['eeg'] /= epochs['eeg'].std('time')
-    erp = epochs['eeg'].mean('case') #- epochs.mean('case').sub(time=(tstart,0)).mean('time')
+    epochs['eeg'] -= epochs['eeg'].mean()
+    epochs['eeg'] /= epochs['eeg'].std()
+    erp = epochs['eeg'].mean('case')
     
     cases.append([subject, erp])
 column_names = ['subject', 'erp']
@@ -67,11 +65,11 @@ data_trfs_controlled = eelbrain.Dataset.from_caselist(column_names, cases)
 # (3) PREPARE COMPARISON OF TRF AND ERP
 ds_reshaped_erp = copy.deepcopy(data_erp)
 ds_reshaped_erp.rename('erp', 'pattern')
-ds_reshaped_erp['type'] = eelbrain.Factor(['ERP'], repeat=ds_reshaped_erp.shape[0])
+ds_reshaped_erp[:, 'type'] = 'ERP'
 
 ds_reshaped_trf_controlled_2 = copy.deepcopy(data_trfs_controlled)
 ds_reshaped_trf_controlled_2.rename('trf', 'pattern')
-ds_reshaped_trf_controlled_2['type'] = eelbrain.Factor(['TRF'], repeat=ds_reshaped_trf_controlled_2.shape[0])
+ds_reshaped_trf_controlled_2[:, 'type'] = 'TRF'
 
 ds_merged = eelbrain.combine([ds_reshaped_erp, ds_reshaped_trf_controlled_2], dim_intersection=True)
 
@@ -144,7 +142,7 @@ topoplot.mark_sensors('1', c='r')
 res = eelbrain.testnd.TTestRelated('norm_pattern', 'type', match='subject', ds=ds_merged, pmin=0.05)
 plot = eelbrain.plot.Array(res, axes=axes[0:3], axtitle=['ERP', 'TRF','ERP - TRF'], vmax=2)
 
-times=[0,0.05, 0.1, 0.22, 0.35, 0.8]
+times=[0,0.05, 0.1, 0.25, 0.35, 0.8]
 # add vertical lines on the times of the topographies
 for time in times: 
     plot.add_vline(time, color='k', linestyle='--')

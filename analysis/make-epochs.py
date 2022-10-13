@@ -15,6 +15,7 @@
 # +
 from pathlib import Path
 import re
+from operator import itemgetter 
 
 import eelbrain
 import mne
@@ -36,20 +37,11 @@ tstop = 1
 # +
 # Load stimuli
 # ------------
-# Load the gammatone-spectrograms; use the time axis of these as reference
-gammatone = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-8.pickle') for stimulus in STIMULI]
-# Resample the spectrograms to 100 Hz (time-step = 0.01 s), which we will use for TRFs
-gammatone = [x.bin(0.01, dim='time', label='start') for x in gammatone]
-# Pad onset with 100 ms and offset with 1 second; make sure to give the predictor a unique name as that will make it easier to identify the TRF later
-gammatone = [trftools.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='gammatone') for x in gammatone]
-
-# load word onsets - gammatone used as time axis reference
+# load word information (including the time onsets)
 word_tables = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~word.pickle') for stimulus in STIMULI]
-word_onsets = [eelbrain.event_impulse_predictor(gt.time, ds=ds, name='word') for gt, ds in zip(gammatone, word_tables)]
+durations = [word_table['time'][-1]+tstop for word_table in word_tables]
+word_onsets = [word_table['time'] for word_table in word_tables]
 # -
-
-# Extract the duration of the stimuli, so we can later match the EEG to the stimuli
-durations = [gt.time.tmax for stimulus, gt in zip(STIMULI, gammatone)]
 
 # Loop through subjects to get the epoched data
 for subject in SUBJECTS:
@@ -74,32 +66,25 @@ for subject in SUBJECTS:
     # Extract the EEG data segments corresponding to the stimuli
     trial_durations = [durations[i] for i in trial_indexes]
     eeg = eelbrain.load.fiff.variable_length_epochs(events, -0.100, trial_durations, decim=5, connectivity='auto')
-    # Since trials are of unequal length, we will concatenate them for the TRF estimation.
-    eeg_concatenated = eelbrain.concatenate(eeg)
-    
-    # Get corresponding word onsets
-    word_onset_predictor = eelbrain.concatenate([word_onsets[i] for i in trial_indexes])
-
-    if word_onset_predictor.time.tstop > eeg_concatenated.time.tstop: 
-        print('error with subject %s' % subject)
+    current_word_onsets = [word_onsets[i] for i in trial_indexes]
 
     # Make epoched data
     rows = []
-    for trial_idx, onset_time in enumerate(word_onset_predictor.flatnonzero()):
-        
-        # remark: tstart is negative!
-        if onset_time + tstart < 0: 
-            continue 
+    for eeg_segment, matched_word_onsets in zip(eeg, current_word_onsets):
+        for onset_time in matched_word_onsets:
+            # remark: tstart is negative!
+            if onset_time + tstart < 0: 
+                continue 
+                
+            if onset_time + tstop > eeg_segment.time.tstop: 
+                continue
             
-        if onset_time + tstop > eeg_concatenated.time.tstop: 
-            continue
-        
-        current_epoch = eeg_concatenated.sub(time=(onset_time+tstart, onset_time+tstop))
-        # change dimension (tmin to tstart)
-        current_epoch = eelbrain.set_tmin(current_epoch, tmin = tstart)
-        rows.append([current_epoch, trial_idx + 1])
+            current_epoch = eeg_segment.sub(time=(onset_time+tstart, onset_time+tstop))
+            # change dimension (tmin to tstart)
+            current_epoch = eelbrain.set_tmin(current_epoch, tmin = tstart)
+            rows.append([current_epoch])
 
-    column_names = ['eeg', 'trial_idx']
+    column_names = ['eeg']
     ds = eelbrain.Dataset.from_caselist(column_names, rows)
     eelbrain.save.pickle(ds, epoch_path)
 
