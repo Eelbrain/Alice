@@ -55,7 +55,7 @@ for subject in SUBJECTS:
     
     # Load the EEG data
     raw = mne.io.read_raw(EEG_DIR / subject / f'{subject}_alice-raw.fif', preload=True)
-    # Band-pass filter the raw data between 0.2 and 20 Hz
+    # Band-pass filter the raw data between 0.5 and 20 Hz
     raw.filter(0.5, 20)
     # Interpolate bad channels
     raw.interpolate_bads()
