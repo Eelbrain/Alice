@@ -25,7 +25,7 @@ envelope = [x.bin(0.01, dim='time', label='start') for x in envelope]
 envelope = [trftools.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='envelope') for x in envelope]
 
 # Extract the duration of the stimuli, so we can later match the EEG to the stimuli
-durations = [gt.time.tmax for stimulus, gt in zip(STIMULI, envelope)]
+durations = [stimulus.time.tmax for stimulus in envelope]
 
 # Models
 # ------
@@ -49,11 +49,16 @@ for subject in SUBJECTS:
         if all(path.exists() for path in trf_paths.values()):
             continue
         # Load the EEG data
-        raw = mne.io.read_raw(EEG_DIR / subject / f'{subject}_alice-raw_{reference}.fif', preload=True)
+        raw = mne.io.read_raw(EEG_DIR / subject / f'{subject}_alice-raw.fif', preload=True)
         # Band-pass filter the raw data between 0.5 and 20 Hz
         raw.filter(0.5, 20)
         # Interpolate bad channels
         raw.interpolate_bads()
+        # Do referencing
+        if reference == 'cz': 
+            raw.set_eeg_reference(['33'])
+        else: 
+            raw.set_eeg_reference('average')
         # Extract the events marking the stimulus presentation from the EEG file
         events = eelbrain.load.fiff.events(raw)
         # Not all subjects have all trials; determine which stimuli are present
@@ -64,11 +69,11 @@ for subject in SUBJECTS:
         # Since trials are of unequal length, we will concatenate them for the TRF estimation.
         eeg_concatenated = eelbrain.concatenate(eeg)
 
-        if reference in ['cz']: 
+        if reference == 'cz': 
             # As the Cz-channel was used for reference, the channel contains zeros (which cannot be used for TRF estimation)
             # Therefore, this channel is replaced with random noise to preserve the 64-sensor dimension. 
-            Cz_location = [label_idx for label_idx, label in enumerate(eeg_concatenated.sensor.names) if label == '33']
-            eeg_concatenated.x[Cz_location,] = np.random.randn(eeg_concatenated[Cz_location,].x.shape[0], eeg_concatenated[Cz_location,].x.shape[1])*np.mean(eeg_concatenated.x)
+            cz_location = [label_idx for label_idx, label in enumerate(eeg_concatenated.sensor.names) if label == '33']
+            eeg_concatenated.x[cz_location,] = np.random.randn(eeg_concatenated[cz_location,].x.shape[0], eeg_concatenated[cz_location,].x.shape[1])*np.mean(eeg_concatenated.x)
 
         for model, predictors in models.items():
             path = trf_paths[model]

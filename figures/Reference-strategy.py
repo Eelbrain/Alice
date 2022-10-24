@@ -52,13 +52,13 @@ pyplot.rcParams.update(RC)
 # -
 
 # get all subjects
-subjects = [subject for subject in os.listdir(TRF_DIR) if subject.startswith('S') ]
+subjects = [subject for subject in os.listdir(TRF_DIR) if subject.startswith('S')]
 
 # +
 cases = []
 for subject in subjects:
     for reference, name in zip(['mastoids','cz','average'], ['envelope.pickle','envelope_cz.pickle','envelope_average.pickle']):
-        mtrf = eelbrain.load.unpickle(f"{TRF_DIR}/{subject}/{subject} {name}")
+        mtrf = eelbrain.load.unpickle(TRF_DIR / subject / f"{subject} {name}")
         trf = mtrf.h[0]
         prediction_accuracy = mtrf.r
         cases.append([subject, trf, prediction_accuracy, reference])
