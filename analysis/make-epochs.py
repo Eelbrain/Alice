@@ -37,7 +37,7 @@ tstop = 1
 # +
 # Load stimuli
 # ------------
-# load word information (including the time onsets)
+# load word information (including the onset times)
 word_tables = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~word.pickle') for stimulus in STIMULI]
 durations = [word_table['time'][-1]+tstop for word_table in word_tables]
 word_onsets = [word_table['time'] for word_table in word_tables]
@@ -47,9 +47,9 @@ word_onsets = [word_table['time'] for word_table in word_tables]
 for subject in SUBJECTS:
     subject_epoch_dir = EPOCH_DIR / subject
     subject_epoch_dir.mkdir(exist_ok=True)
-    # Generate all epoch paths so we can check whether any new TRFs need to be estimated
-    epoch_path = subject_epoch_dir / f'{subject}_epoched_word.pickle'
-    # Skip this subject if all files already exist
+    # Generate epoch path so we can check whether it already exists
+    epoch_path = subject_epoch_dir / f'{subject}_erp_word.pickle'
+    # Skip this subject if the file already exists
     if epoch_path.exists():
         continue
     
@@ -72,7 +72,7 @@ for subject in SUBJECTS:
     rows = []
     for eeg_segment, matched_word_onsets in zip(eeg, current_word_onsets):
         for onset_time in matched_word_onsets:
-            # remark: tstart is negative!
+            # Note: tstart is negative!
             if onset_time + tstart < 0: 
                 continue 
                 
@@ -81,11 +81,16 @@ for subject in SUBJECTS:
             
             current_epoch = eeg_segment.sub(time=(onset_time+tstart, onset_time+tstop))
             # change dimension (tmin to tstart)
-            current_epoch = eelbrain.set_tmin(current_epoch, tmin = tstart)
+            current_epoch = eelbrain.set_tmin(current_epoch, tmin=tstart)
             rows.append([current_epoch])
 
     column_names = ['eeg']
     ds = eelbrain.Dataset.from_caselist(column_names, rows)
-    eelbrain.save.pickle(ds, epoch_path)
+
+    # take average
+    ERP = ds['eeg'].mean('case')
+    # do baseline correction: subtract from each sensor its average
+    baseline_corrected_ERP = ERP - ERP.mean('time')
+    eelbrain.save.pickle(baseline_corrected_ERP, epoch_path)
 
 

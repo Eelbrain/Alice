@@ -38,21 +38,16 @@ DST.mkdir(exist_ok=True)
 subjects = [subject for subject in os.listdir(TRF_DIR) if subject.startswith('S') ]
 assert os.path.exists(EPOCH_DIR), "Epoch directory is not found. Please, run script analysis/make-epochs.py to create the different epochs per subject."
 
-# (1) GET THE ERP RESPONSE TO A WORD ONSET
+# (1) Get the ERP response to a word onset
 cases = []
 for subject in subjects:
-    epochs = eelbrain.load.unpickle(EPOCH_DIR / subject / f'{subject}_epoched_word.pickle')
-    
-    # get erp and normalize amplitude
-    epochs['eeg'] -= epochs['eeg'].mean()
-    epochs['eeg'] /= epochs['eeg'].std()
-    erp = epochs['eeg'].mean('case')
-    
+    erp = eelbrain.load.unpickle(EPOCH_DIR / subject / f'{subject}_erp_word.pickle')
     cases.append([subject, erp])
 column_names = ['subject', 'erp']
 data_erp = eelbrain.Dataset.from_caselist(column_names, cases)
 
-# (2) GET THE TRF TO WORD ONSETS WHEN CONTOLLED FOR ACOUSTIC REPRESENTATIONS
+# (2) get the TRF to word onsets when controlled for acoustic representations
+
 cases = []
 for subject in subjects:
     mtrf = eelbrain.load.unpickle(TRF_DIR/ subject / f'{subject} acoustic+words.pickle')
@@ -62,7 +57,7 @@ column_names = ['subject', 'trf']
 data_trfs_controlled = eelbrain.Dataset.from_caselist(column_names, cases)
 
 # +
-# (3) PREPARE COMPARISON OF TRF AND ERP
+# (3) prepare comparison of TRF and ERP
 ds_reshaped_erp = copy.deepcopy(data_erp)
 ds_reshaped_erp.rename('erp', 'pattern')
 ds_reshaped_erp[:, 'type'] = 'ERP'
@@ -75,22 +70,14 @@ ds_merged = eelbrain.combine([ds_reshaped_erp, ds_reshaped_trf_controlled_2], di
 
 
 # -
-
-def normalize_trf(trf):
-    
-    trf -= trf.mean('time')
-    normalize_by = trf.std('time')
-    normalize_by[normalize_by==0] = 1 # zero trf must remain zero trf
-    
-    norm_trf = trf / normalize_by
-    
-    return norm_trf
-
-
-ds_merged['norm_pattern'] = eelbrain.combine([normalize_trf(pattern) for pattern in ds_merged['pattern']])
+pattern_normalized = ds_merged['pattern'] - ds_merged['pattern'].mean('time')
+normalize_by = pattern_normalized.std('time')
+normalize_by[normalize_by==0] = 1  # Avoid division by 0
+pattern_normalized /= normalize_by
+ds_merged['norm_pattern'] = pattern_normalized
 ds_merged['norm_pattern_Fz'] = ds_merged['norm_pattern'].sub(sensor='1')
 
-## NEW FIGURE 
+## figure 
 figure = pyplot.figure(figsize=(8.5, 7.5))
 gridspec = figure.add_gridspec(8,6, height_ratios=[2, 3, 3, 5,2,2,2,2], left=0.1, right=0.95, hspace=0.3)
 topo_args = dict(clip='circle')
@@ -132,11 +119,8 @@ plot = eelbrain.plot.UTSStat('norm_pattern_Fz', 'type', ds=ds_merged, axes=c_axe
 plot.set_clusters(res.clusters, pmax=0.05, ptrend=None, color='.5', y=0, dy=0.1)
 
 c_axes = figure.add_subplot(gridspec[0,4])
-sensor = ds_merged['pattern'].get_dim('sensor')
-zeros_nd = eelbrain.NDVar(np.zeros(61), (sensor,))
-
-topoplot = eelbrain.plot.Topomap(zeros_nd, head_radius=0.45, axes=c_axes, clip='circle')
-topoplot.mark_sensors('1', c='r')
+sensormap = eelbrain.plot.SensorMap(ds_merged['pattern'], labels='none', head_radius=0.45, axes=c_axes)
+sensormap.mark_sensors('1', c='r')
 
 # +
 res = eelbrain.testnd.TTestRelated('norm_pattern', 'type', match='subject', ds=ds_merged, pmin=0.05)
@@ -175,6 +159,7 @@ figure.text(0, 0.39, 'C) Corresponding topographies', size=10)
 
 figure
 
-figure.savefig(DST / 'allChannels-ERP-TRF_singleChannel.png')
+figure.savefig(DST / 'ERP-TRF.png')
+figure.savefig(DST / 'ERP-TRF.pdf')
 
 
