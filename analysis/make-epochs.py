@@ -80,7 +80,7 @@ for subject in SUBJECTS:
                 continue
             
             current_epoch = eeg_segment.sub(time=(onset_time+tstart, onset_time+tstop))
-            # change dimension (tmin to tstart)
+            # Update the epoch's time to be relative to word onset
             current_epoch = eelbrain.set_tmin(current_epoch, tmin=tstart)
             rows.append([current_epoch])
 
