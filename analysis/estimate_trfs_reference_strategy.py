@@ -5,7 +5,7 @@ import re
 import eelbrain
 import mne
 import trftools
-import numpy as np
+import numpy
 
 
 STIMULI = [str(i) for i in range(1, 13)]
@@ -71,16 +71,17 @@ for subject in SUBJECTS:
 
         if reference == 'cz': 
             # As the Cz-channel was used for reference, the channel contains zeros (which cannot be used for TRF estimation)
-            # Therefore, this channel is replaced with random noise to preserve the 64-sensor dimension. 
-            cz_location = [label_idx for label_idx, label in enumerate(eeg_concatenated.sensor.names) if label == '33']
-            eeg_concatenated.x[cz_location,] = np.random.randn(eeg_concatenated[cz_location,].x.shape[0], eeg_concatenated[cz_location,].x.shape[1])*np.mean(eeg_concatenated.x)
+            # Therefore, this channel is replaced with random noise to preserve the 64-sensor dimension.
+            n_times = len(eeg_concatenated.time)
+            rng = numpy.random.default_rng()
+            eeg_concatenated['33'] = rng.standard_normal(n_times) * eeg_concatenated.std()
 
         for model, predictors in models.items():
             path = trf_paths[model]
             # Skip if this file already exists
             if path.exists():
                 continue
-            print(f"Estimating: {subject} ~ {model} ~ {reference}")
+            print(f"Estimating: {subject} ~ {model} ({reference})")
             # Select and concetenate the predictors corresponding to the EEG trials
             predictors_concatenated = []
             for predictor in predictors:
