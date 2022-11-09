@@ -129,14 +129,14 @@ for time, word in word_table.zip('onset', 'Word'):
 ngram_surprisal = eelbrain.NDVar.zeros(eeg_time)
 for time, value in word_table.zip('onset', 'NGRAM'):
     ngram_surprisal[time] = value
-eelbrain.plot.UTS(ngram_surprisal, stem=True, colors='blue', axes=axes[7], ylabel='NGram')
+eelbrain.plot.UTS(ngram_surprisal, stem=True, colors='blue', axes=axes[7], ylabel='N-Gram')
 
 # Generate an alternative impulse, only at content word onsets, and scaled by a different variable
 cfg_surprisal = eelbrain.NDVar.zeros(eeg_time)
 for time, value, is_lexical in word_table.zip('onset', 'NGRAM', 'IsLexical'):
     if is_lexical:
         cfg_surprisal[time] = value
-eelbrain.plot.UTS(cfg_surprisal, stem=True, colors='blue', axes=axes[8], ylabel='NGram\nLexical')
+eelbrain.plot.UTS(cfg_surprisal, stem=True, colors='blue', axes=axes[8], ylabel='N-Gram\nLexical')
 
 # Fine-tune layout
 LAST = 8
