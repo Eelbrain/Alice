@@ -4,8 +4,8 @@ import re
 
 import eelbrain
 import mne
-import trftools
 import numpy
+import trftools
 
 
 STIMULI = [str(i) for i in range(1, 13)]
