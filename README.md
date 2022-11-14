@@ -43,6 +43,11 @@ then either create a link to the dataset at ``~/Data/Alice``, or change the root
 This data has been derived from the [original dataset](https://deepblue.lib.umich.edu/data/concern/data_sets/bg257f92t) using the script at `import_dataset/convert-all.py`.
 
 
+## Download TRFs
+
+All TRFs used in the different figures can be computed and saved using the scripts in the `analysis` directory. However, this may require substantial computing time. To get started faster, the TRFs can also be downloaded from [here](https://drive.google.com/drive/folders/1-GQ1RAmpAyquwvE3bjxlzuVR58Uz47A2?usp=sharing). Just move the downloaded `TRFs` folder into the `~/Data/Alice` directory, i.e., as `~/Data/Alice/TRFs`.
+
+
 ## Notebooks
 
 Many Python scripts in this repository are actually [Jupyter](https://jupyter.org/documentation) notebooks. They can be recognized as such because of their header that starts with:
