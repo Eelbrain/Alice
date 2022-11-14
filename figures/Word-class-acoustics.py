@@ -72,13 +72,19 @@ p = eelbrain.plot.Topomap(lexical_model_test, ncol=3, title=lexical_model_test, 
 # ## How do the responses differ?
 # Compare the TRFs corresponding to content and function words.
 
-# load the TRFs
+# Load the TRFs:
+# Keep `h_scaled` instead of `h` so that we can compare and add TRFs to different predictors
+# Because each predictor gets normalized for estimation, the scale of the TRFs in `h` are all different
+# The `h_scaled` attribute reverses that normalization, so that the TRFs are all in a common scale
 rows = []
 for subject in SUBJECTS:
     trf = eelbrain.load.unpickle(TRF_DIR / subject / f'{subject} words+lexical.pickle')
     rows.append([subject, model, *trf.h_scaled])
 trfs = eelbrain.Dataset.from_caselist(['subject', 'model', *trf.x], rows)
 
+# Each word has an impulse of the general word predictor, as well as one form the word-class specific predictor
+# Accordingly, each word's response consists of the general word TRF and the word-class specific TRF
+# To reconstruct the responses to the two kinds of words, we thus want to add the general word TRF and the word-class specific TRF:
 word_difference = eelbrain.testnd.TTestRelated('non_lexical + word', 'lexical + word', ds=trfs, pmin=0.05)
 
 p = eelbrain.plot.TopoArray(word_difference, t=[0.100, 0.220, 0.400], clip='circle')
