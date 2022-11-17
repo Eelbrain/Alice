@@ -72,18 +72,25 @@ figure = pyplot.figure(figsize=(7.5, 5))
 gridspec = figure.add_gridspec(9, 9, left=0.01, right=0.95, hspace=1.5)
 topo_args = dict(clip='circle')
 det_args = dict(**topo_args, vmax=0.06, cmap='lux-a')
-cbar_args = dict(label="Pearson's r", ticks=2, h=2)
+trf_vmax = 0.007
+reference_labels = {
+    'mastoids': 'mastoids', 
+    'cz': 'Cz', 
+    'average': 'average',
+}
 
 # Plot the prediction accuracies 
-for reference_idx, reference in enumerate(['mastoids', 'cz', 'average']):
+for reference_idx, reference in enumerate(reference_labels):
     axes = figure.add_subplot(gridspec[reference_idx*3: reference_idx*3+3, 0:3])
     p = eelbrain.plot.Topomap('prediction_accuracy', ds=data_trfs[data_trfs['reference']==reference], axes=axes, **det_args)
-    axes.set_title(f"Reference to {reference}", loc='left', size=10)
-p.plot_colorbar(below=axes, **cbar_args)
+    label = reference_labels[reference]
+    axes.set_title(f"Referenced to {label}", loc='left', size=10)
+p.plot_colorbar(below=axes, label="Pearson's r", ticks=2, h=2)
 
 # Plot the TRFs 
 times = [0.04, 0.14, 0.24]
-for reference_idx, reference in enumerate(['mastoids', 'cz', 'average']):
+time_labels = ['%d ms' % (time*1000) for time in times]
+for reference_idx, reference in enumerate(reference_labels):
     axes = figure.add_subplot(gridspec[reference_idx*3: reference_idx*3+3, 3:9])
     reference_index = data_trfs['reference'] == reference
     trf = data_trfs[reference_index, 'trf']
@@ -102,10 +109,8 @@ for reference_idx, reference in enumerate(['mastoids', 'cz', 'average']):
         figure.add_subplot(gridspec[reference_idx*3: reference_idx*3+2, 7]),
         figure.add_subplot(gridspec[reference_idx*3: reference_idx*3+2, 8]),
     ]
-    time_labels = ['%d ms' % (time*1000) for time in times]
-
-    plot_topo = eelbrain.plot.Topomap([trf.sub(time=time) for time in times], axes=axes, axtitle=time_labels, ncol=len(times), head_radius=0.45, clip='circle')
-    plot_topo.plot_colorbar(right_of=axes[-1], label='', label_rotation=90, ticks={0.006:'+', -0.006:'-', 0.000:'0'})
+    plot_topo = eelbrain.plot.Topomap([trf.sub(time=time) for time in times], axes=axes, axtitle=time_labels, ncol=len(times), vmax=trf_vmax, **topo_args)
+    plot_topo.plot_colorbar(right_of=axes[-1], label='', label_rotation=90, ticks={trf_vmax:'+', -trf_vmax:'-', 0:'0'})
 
 figure.text(0.01, 0.96, 'A) Prediction accuracy', size=10)
 figure.text(0.30, 0.96, 'B) Envelope TRF', size=10)
