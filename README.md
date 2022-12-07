@@ -1,6 +1,6 @@
 # Alice dataset for Eelbrain
 
-This repository contains scripts and instructions to reproduce the results from the paper `Eelbrain: A toolkit for continuous analysis with temporal response functions`.
+This repository contains scripts and instructions to reproduce the results from the manuscript [*Eelbrain: A toolkit for time-continuous analysis with temporal response functions*](https://doi.org/10.1101/2021.08.01.454687).
 
 
 # Setup
@@ -23,6 +23,8 @@ This will install all the required libraries into a new environment called `eelb
 $ conda activate eelbrain
 ```
 
+You will have to activate the environment every time you start a new shell session.
+
 
 ## Download the Alice dataset
 
@@ -35,7 +37,7 @@ $ python download_alice.py
 The default download location is ``~/Data/Alice``. The scripts in the Alice repository expect to find the dataset at this location. If you want to store the dataset at a different location, provide the location as argument for the download:
 
 ```bash
-$ python download_alice.py download/path
+$ python download_alice.py download/directory
 ```
 
 then either create a link to the dataset at ``~/Data/Alice``, or change the root path where it occurs in scripts (always near the beginning).
@@ -59,7 +61,7 @@ Many Python scripts in this repository are actually [Jupyter](https://jupyter.or
 #     formats: ipynb,py:light
 ```
 
-These scripts were converted to Python scripts with [Jupytext](http://jupytext.readthedocs.io) for efficient management with git. To turn such a script called `notebook.py` back into a notebook, run:
+These scripts were converted to Python scripts with [Jupytext](http://jupytext.readthedocs.io) for efficient management with git. To turn such a script back into a notebook, run this command (assuming the script is called `notebook.py`):
 
 ```bash
 $ jupytext --to notebook notebook.py
@@ -84,6 +86,11 @@ The `analysis` directory contains scripts used to estimate and save various mTRF
 ## Figures
 
 The `figures` directory contains the code used to generate all the figures in the paper.
+
+
+## Import_dataset
+
+This directory contains the scripts that were used to convert the data from the original Alice EEG dataset to the format used here.
 
 
 # Further resources
