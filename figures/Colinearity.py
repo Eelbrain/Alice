@@ -1,16 +1,34 @@
 # Author: Proloy Das <pdas6@mgh.harvard.edu>
 """This script compares Ridge regression and boosting during colinearity"""
+import os
 from pathlib import Path
 import re
 
 import numpy as np
+import matplotlib.pyplot as plt
 import eelbrain
 import mne
 import trftools
 
+from pyeeg.models import TRFEstimator
+
+
+def plot_trf_ndvars(trfs):
+    fig, axes = plt.subplots(1, 2, figsize=(10, 6))
+    for h, ax in zip(trfs, axes):
+        taxis = np.linspace(*(map(lambda x: getattr(h.time, x),
+                                  ('tmin', 'tmax', 'nsamples'))))
+        ax.plot(taxis, h.get_data('time'))
+        ax.set_title(f'{h.name}')
+        ax.set_xlabel('time')
+        ax.set_ylabel('TRF')
+    return fig
+
 
 STIMULI = [str(i) for i in range(1, 13)]
-DATA_ROOT = Path("~").expanduser() / 'Data' / 'Alice'
+tempfile = os.path.realpath(os.path.join(__file__, '..',
+                                         '..', ".temppath.pickled"))
+DATA_ROOT = Path(eelbrain.load.unpickle(tempfile))
 PREDICTOR_DIR = DATA_ROOT / 'predictors'
 # EEG_DIR = DATA_ROOT / 'eeg'
 # SUBJECTS = [path.name for path in EEG_DIR.iterdir() if re.match(r'S\d*', path.name)]
@@ -54,22 +72,53 @@ tstep = envelope[0].time.tstep
 t0 = 16
 trf_time_series = np.exp(-(((np.arange(100) - t0) * tstep)**2 / 0.01)) \
             * np.sin(2. * np.pi * 4. * np.arange(100) * tstep) * 10e-9
-envelope_trf = eelbrain.NDVar(trf_time_series, eelbrain.UTS(0, tstep, trf_time_series.shape[-1]))
-
-envelope_response = eelbrain.convolve(envelope_trf, envelope[0])
+envelope_trf = eelbrain.NDVar(trf_time_series,
+                              eelbrain.UTS(0, tstep, trf_time_series.shape[-1]),
+                              name='Envelope')
+envelope_responses = [eelbrain.convolve(envelope_trf, x) for x in envelope]
 
 t1 = 20
-trf_time_series = np.exp(-(((np.arange(100) - t0) * tstep)**2 / 0.001)) \
-            * np.sin(2. * np.pi * 4. * np.arange(100) * tstep) * 10e-5
-onset_envelope_trf = eelbrain.NDVar(trf_time_series, eelbrain.UTS(0, tstep, trf_time_series.shape[-1]))
+trf_time_series = np.exp(-(((np.arange(100) - t1) * tstep)**2 / 0.001)) \
+            * np.sin(2. * np.pi * 4. * (np.arange(100) - 4) * tstep) * 10e-5
+onset_envelope_trf = eelbrain.NDVar(trf_time_series,
+                                    eelbrain.UTS(0, tstep, trf_time_series.shape[-1]),
+                                    name='Onset-Envelope')
+onset_envelope_responses = [eelbrain.convolve(onset_envelope_trf, x)
+                            for x in onset_envelope]
 
-onset_envelope_response = eelbrain.convolve(onset_envelope_trf, onset_envelope[0])
+fig = plot_trf_ndvars((envelope_trf, onset_envelope_trf))
+fig.suptitle('Ground truth TRFs')
 
-response = eelbrain.combine([envelope_response, onset_envelope_response])
-response = response.sum('case')
-noise = eelbrain.powerlaw_noise(response.dims, 1)
-eeg = response + noise * response.var() / noise.var()  # SNR = 0dB
-# eelbrain.plot.LineStack(eelbrain.combine((response, eeg)))
+eeg = []
+for response in zip(envelope_responses, onset_envelope_responses):
+    response = eelbrain.combine(response)
+    response = response.sum('case')
+    noise = eelbrain.powerlaw_noise(response.dims, 1)
+    # SNR ~ -5dB
+    eeg.append(response + 1.7783 * noise * response.std() / noise.std())  
+
+# Since trials are of unequal length, we will concatenate them for the TRF 
+# estimation.
+eeg_concatenated = eelbrain.concatenate(eeg[:4])
+predictors_concatenated = [eelbrain.concatenate(predictor) for predictor in 
+                           (envelope[:4], onset_envelope[:4])]
 
 # Learning the TRFs via boosting
-trfs = eelbrain.boosting(eeg, [envelope[0], onset_envelope[0]], -0.2, 0.6)
+boosting_trf = eelbrain.boosting(eeg_concatenated, predictors_concatenated,
+                                 -0.2, 0.8, basis=0.15, basis_window='hamming')
+fig = plot_trf_ndvars(boosting_trf.h_scaled)
+fig.suptitle('Boosting TRFs')
+
+# Learning TRFs via Ridge regression
+x = eelbrain.combine(predictors_concatenated).get_data(('time', 'case'))
+# Getting EEG data
+y = eeg_concatenated.get_data('time')[:, None]
+
+# TRF instance
+reg_param = [0, 0.1, 0.2, 0.5, 1., 2., 5., 10.]  # Ridge parameter
+ridge_trf = TRFEstimator(tmin=-0.2, tmax=0.8, srate=1/eeg[0].time.tstep,
+                         alpha=reg_param)
+
+# Fit our model
+scores, alpha = ridge_trf.xfit(x, y, feat_names=["Envelope", "Onset-Envelope"])
+ridge_trf.plot(feat_id=[0, 1], figsize=(10, 6))
