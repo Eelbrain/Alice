@@ -13,3 +13,4 @@ dependencies:
 - seaborn
 - pip:
   - https://github.com/christianbrodbeck/gammatone/archive/fmax.zip
+  - git+https://github.com/Hugo-W/pyEEG.git
