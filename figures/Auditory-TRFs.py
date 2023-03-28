@@ -18,7 +18,6 @@ from pathlib import Path
 
 import eelbrain
 from matplotlib import pyplot
-import mne
 import re
 import trftools
 

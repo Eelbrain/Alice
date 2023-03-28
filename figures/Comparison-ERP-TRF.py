@@ -15,10 +15,8 @@
 
 # +
 import eelbrain
-import os
 from pathlib import Path
 import copy
-import numpy as np
 from matplotlib import pyplot
 import os
 

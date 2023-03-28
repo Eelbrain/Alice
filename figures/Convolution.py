@@ -21,8 +21,6 @@ from pathlib import Path
 import eelbrain
 from matplotlib import pyplot
 from matplotlib.patches import ConnectionPatch
-import mne
-import trftools
 
 
 # Data locations

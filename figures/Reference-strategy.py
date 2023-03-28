@@ -16,12 +16,10 @@
 # +
 import os
 from pathlib import Path
-import re
 
 import eelbrain
 from matplotlib import pyplot
-import mne
-import trftools
+
 
 # Data locations
 DATA_ROOT = Path("~").expanduser() / 'Data' / 'Alice'
