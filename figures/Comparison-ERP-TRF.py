@@ -35,7 +35,7 @@ DST = DATA_ROOT / 'figures'
 DST.mkdir(exist_ok=True)
 
 # Configure the matplotlib figure style
-FONT = 'Helvetica Neue'
+FONT = 'Arial'
 FONT_SIZE = 8
 RC = {
     'figure.dpi': 150,
