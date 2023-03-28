@@ -63,8 +63,8 @@ data_envelope = eelbrain.Dataset.from_caselist(['subject', 'det', 'trf'], rows)
 
 # test that model predictive power on held-out data is > 0
 test_envelope = eelbrain.testnd.TTestOneSample('det', ds=data_envelope, tail=1, pmin=0.05)
-p = eelbrain.plot.Topomap(test_envelope)
-cb = p.plot_colorbar(width=0.1)
+p = eelbrain.plot.Topomap(test_envelope, clip='circle', w=2)
+cb = p.plot_colorbar(width=0.1, w=2)
 
 # ## Envelope TRF
 # Test the TRF with a one-sample *t*-test against 0. This tests the null-hypothesis that the electrical current direction at each time point was random across subjects. The systematic current directions shown below at anterior electrodes are typical of auditory responses. 
@@ -152,7 +152,7 @@ gammatone_on = trftools.neural.edge_detector(gammatone, c=30)
 gammatone /= gammatone.max()
 gammatone_on /= gammatone_on.max()
 
-# Load cross-validated preditive power of all models
+# Load cross-validated predictive power of all models
 models = ['envelope', 'envelope+onset', 'acoustic']
 rows = []
 for model in models:
