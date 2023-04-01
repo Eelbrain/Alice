@@ -44,8 +44,9 @@ then either create a link to the dataset at ``~/Data/Alice``, or change the root
 
 This data has been derived from the [original dataset](https://deepblue.lib.umich.edu/data/concern/data_sets/bg257f92t) using the script at `import_dataset/convert-all.py`.
 
+## Create (or download) predictors and TRFs
 
-## Download TRFs
+In order to create predictors used in the analysis (and for some plots in the figures), execute the scripts in the `predictors` directory (see [Subdirectories](#subdirectories) below).
 
 All TRFs used in the different figures can be computed and saved using the scripts in the `analysis` directory. However, this may require substantial computing time. To get started faster, the TRFs can also be downloaded from [here](https://www.dropbox.com/s/0mkgmii47iiq4fw/17-11-2022-TR-eLife-85012%20-%20TRFs.zip?dl=0). Just move the downloaded `TRFs` folder into the `~/Data/Alice` directory, i.e., as `~/Data/Alice/TRFs`.
 
@@ -67,7 +68,7 @@ These scripts were converted to Python scripts with [Jupytext](http://jupytext.r
 $ jupytext --to notebook notebook.py
 ```
 
-# Subdirectories
+# Subdirectories <a name="subdirectories"></a>
 
 ## Predictors
 
