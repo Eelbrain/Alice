@@ -19,7 +19,6 @@ from pathlib import Path
 import eelbrain
 from matplotlib import pyplot
 import re
-import trftools
 
 
 # Data locations
@@ -147,7 +146,7 @@ p = eelbrain.plot.Array([strf_spectrogram, strf_onset_spectrogram], ncol=2, xlim
 # Load stimuli
 gammatone = eelbrain.load.unpickle(DATA_ROOT / 'stimuli' / '1-gammatone.pickle').sub(time=(0, 3.001))
 gammatone = (gammatone.clip(0) + 1).log()
-gammatone_on = trftools.neural.edge_detector(gammatone, c=30)
+gammatone_on = eelbrain.edge_detector(gammatone, c=30)
 gammatone /= gammatone.max()
 gammatone_on /= gammatone_on.max()
 

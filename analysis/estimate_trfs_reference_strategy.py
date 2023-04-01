@@ -5,7 +5,6 @@ import re
 import eelbrain
 import mne
 import numpy
-import trftools
 
 
 STIMULI = [str(i) for i in range(1, 13)]
@@ -22,7 +21,7 @@ TRF_DIR.mkdir(exist_ok=True)
 # Load the broad-band envelope 
 envelope = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-1.pickle') for stimulus in STIMULI]
 envelope = [x.bin(0.01, dim='time', label='start') for x in envelope]
-envelope = [trftools.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='envelope') for x in envelope]
+envelope = [eelbrain.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='envelope') for x in envelope]
 
 # Extract the duration of the stimuli, so we can later match the EEG to the stimuli
 durations = [stimulus.time.tmax for stimulus in envelope]

@@ -1,8 +1,7 @@
 """Generate high-resolution gammatone spectrograms"""
 from pathlib import Path
 
-from eelbrain import *
-from trftools import gammatone_bank
+import eelbrain
 
 
 DATA_ROOT = Path("~").expanduser() / 'Data' / 'Alice'
@@ -12,6 +11,6 @@ for i in range(1, 13):
     dst = STIMULUS_DIR / f'{i}-gammatone.pickle'
     if dst.exists():
         continue
-    wav = load.wav(STIMULUS_DIR / f'{i}.wav')
-    gt = gammatone_bank(wav, 20, 5000, 256, location='left', pad=False, tstep=0.001)
-    save.pickle(gt, dst)
+    wav = eelbrain.load.wav(STIMULUS_DIR / f'{i}.wav')
+    gt = eelbrain.gammatone_bank(wav, 20, 5000, 256, location='left', integration_window=0.010, tstep=0.001)
+    eelbrain.save.pickle(gt, dst)

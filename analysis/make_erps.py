@@ -15,11 +15,9 @@
 # +
 from pathlib import Path
 import re
-from operator import itemgetter 
 
 import eelbrain
 import mne
-import trftools
 # -
 
 STIMULI = [str(i) for i in range(1, 13)]
