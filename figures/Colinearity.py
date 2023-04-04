@@ -10,11 +10,16 @@ import eelbrain
 import mne
 import trftools
 
+from scipy.signal import windows
 from pyeeg.models import TRFEstimator
 
 
-def plot_trf_ndvars(trfs):
-    fig, axes = plt.subplots(1, 2, figsize=(10, 6))
+def plot_trf_ndvars(trfs, axes=None):
+    if axes is None:
+        fig, axes = plt.subplots(len(trfs))
+    else:
+        assert len(axes) == len(trfs)
+        fig = axes[0].figure
     for h, ax in zip(trfs, axes):
         taxis = np.linspace(*(map(lambda x: getattr(h.time, x),
                                   ('tmin', 'tmax', 'nsamples'))))
@@ -57,8 +62,8 @@ gammatone_onsets = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammaton
 gammatone_onsets = [x.bin(0.01, dim='time', label='start') for x in gammatone_onsets]
 gammatone_onsets = [eelbrain.set_time(x, gt.time, name='gammatone_on') for x, gt in zip(gammatone_onsets, gammatone)]
 # # Load word tables and convert tables into continuous time-series with matching time dimension
-# word_tables = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~word.pickle') for stimulus in STIMULI]
-# word_onsets = [eelbrain.event_impulse_predictor(gt.time, ds=ds, name='word') for gt, ds in zip(gammatone, word_tables)]
+word_tables = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~word.pickle') for stimulus in STIMULI]
+word_onsets = [eelbrain.event_impulse_predictor(gt.time, ds=ds, name='word') for gt, ds in zip(gammatone, word_tables)]
 # # Function and content word impulses based on the boolean variables in the word-tables
 # word_lexical = [eelbrain.event_impulse_predictor(gt.time, value='lexical', ds=ds, name='lexical') for gt, ds in zip(gammatone, word_tables)]
 # word_nlexical = [eelbrain.event_impulse_predictor(gt.time, value='nlexical', ds=ds, name='non_lexical') for gt, ds in zip(gammatone, word_tables)]
@@ -69,45 +74,61 @@ durations = [gt.time.tmax for stimulus, gt in zip(STIMULI, gammatone)]
 
 # Simulate the source time-series
 tstep = envelope[0].time.tstep
-t0 = 16
-trf_time_series = np.exp(-(((np.arange(100) - t0) * tstep)**2 / 0.01)) \
-            * np.sin(2. * np.pi * 4. * np.arange(100) * tstep) * 10e-9
+# t0 = 25
+# trf_time_series = np.exp(-(((np.arange(-20, 100) - t0) * tstep)**2 / 0.004)) \
+#             * np.sin(2. * np.pi * 4. * np.arange(-20, 100) * tstep) * 10e-9
+trf_ts = np.zeros(1000)
+trf_ts[:100] += 0.5 * windows.gaussian(100, 12)
+trf_ts[:200] += - 0.75 * windows.gaussian(200, 17)
+trf_ts[150:450] += 0.15 * windows.gaussian(300, 50)
+trf_time_series = trf_ts * 1e-8
 envelope_trf = eelbrain.NDVar(trf_time_series,
-                              eelbrain.UTS(0, tstep, trf_time_series.shape[-1]),
+                              eelbrain.UTS(0, 0.001, trf_time_series.shape[-1]),
                               name='Envelope')
-envelope_responses = [eelbrain.convolve(envelope_trf, x) for x in envelope]
+envelope_trf = eelbrain.resample(envelope_trf, 100)
+envelope_responses = [eelbrain.convolve(envelope_trf, x - x.mean('time'))
+                      for x in envelope]
 
-t1 = 20
-trf_time_series = np.exp(-(((np.arange(100) - t1) * tstep)**2 / 0.001)) \
-            * np.sin(2. * np.pi * 4. * (np.arange(100) - 4) * tstep) * 10e-5
-onset_envelope_trf = eelbrain.NDVar(trf_time_series,
-                                    eelbrain.UTS(0, tstep, trf_time_series.shape[-1]),
-                                    name='Onset-Envelope')
-onset_envelope_responses = [eelbrain.convolve(onset_envelope_trf, x)
-                            for x in onset_envelope]
-
-fig = plot_trf_ndvars((envelope_trf, onset_envelope_trf))
-fig.suptitle('Ground truth TRFs')
+# t1 = 35
+# trf_time_series = - np.sqrt(np.exp(-(((np.arange(100) - t1) * tstep)**2 / 0.001)) * 10e-13)
+trf_ts = np.zeros(1000)
+trf_ts[:240] += 0.5 * windows.gaussian(240, 20)
+trf_ts[30:410] += 0.75 * windows.gaussian(380, 30)
+trf_time_series = trf_ts * 4e-6
+word_onset_trf = eelbrain.NDVar(trf_time_series,
+                                eelbrain.UTS(0, 0.001, trf_time_series.shape[-1]),
+                                name='Word-Onset')
+word_onset_trf = eelbrain.resample(word_onset_trf, 100)
+word_onset_responses = [eelbrain.convolve(word_onset_trf, x - x.mean('time'))
+                        for x in word_onsets]
 
 eeg = []
-for response in zip(envelope_responses, onset_envelope_responses):
+for response in zip(envelope_responses, word_onset_responses):
     response = eelbrain.combine(response)
+    response -= response.mean('time')
+    print(response.std('time'))
     response = response.sum('case')
     noise = eelbrain.powerlaw_noise(response.dims, 1)
     # SNR ~ -5dB
     eeg.append(response + 1.7783 * noise * response.std() / noise.std())  
 
+fig, axes = plt.subplots(2)
+fig = plot_trf_ndvars((envelope_trf, word_onset_trf), axes=axes)
+
 # Since trials are of unequal length, we will concatenate them for the TRF 
 # estimation.
-eeg_concatenated = eelbrain.concatenate(eeg[:4])
+eeg_concatenated = eelbrain.concatenate(eeg)
+
+## With controlling the acoustics
 predictors_concatenated = [eelbrain.concatenate(predictor) for predictor in 
-                           (envelope[:4], onset_envelope[:4])]
+                           (envelope, word_onsets)]
 
 # Learning the TRFs via boosting
 boosting_trf = eelbrain.boosting(eeg_concatenated, predictors_concatenated,
-                                 -0.2, 0.8, basis=0.15, basis_window='hamming')
-fig = plot_trf_ndvars(boosting_trf.h_scaled)
-fig.suptitle('Boosting TRFs')
+                                 -0.1, 1., basis=0.05, error='l1', partitions=10,
+                                 selective_stopping=3)
+# slective_stopping and basis controls two facets of regularization.
+fig = plot_trf_ndvars(boosting_trf.h_scaled, axes=axes)
 
 # Learning TRFs via Ridge regression
 x = eelbrain.combine(predictors_concatenated).get_data(('time', 'case'))
@@ -115,10 +136,37 @@ x = eelbrain.combine(predictors_concatenated).get_data(('time', 'case'))
 y = eeg_concatenated.get_data('time')[:, None]
 
 # TRF instance
-reg_param = [0, 0.1, 0.2, 0.5, 1., 2., 5., 10.]  # Ridge parameter
+reg_param = [10, 20, 50, 100, 200, 500, 1000, 1500]  # Ridge parameter
+ridge_trf = TRFEstimator(tmin=-0.1, tmax=1., srate=1/eeg[0].time.tstep,
+                         alpha=reg_param)
+
+# Fit our model
+scores, alpha = ridge_trf.xfit(x, y, n_splits=10, feat_names=['Envelope', "Word-Onset"])
+fig = ridge_trf.plot(feat_id=[0, 1], ax=axes)
+
+## Without controlling the acoustics
+predictors_concatenated = [eelbrain.concatenate(word_onsets)]
+# Learning the TRFs via boosting
+boosting_trf = eelbrain.boosting(eeg_concatenated, predictors_concatenated,
+                                 -0.1, 1., basis=0.05, error='l1', partitions=10)
+fig = plot_trf_ndvars(boosting_trf.h_scaled, axes=[axes[1]])
+
+# Learning TRFs via Ridge regression
+# x = eelbrain.combine(predictors_concatenated).get_data(('time', 'case'))
+x = eelbrain.combine(predictors_concatenated).get_data('time')[:, None]
+# Getting EEG data
+y = eeg_concatenated.get_data('time')[:, None]
+
+# TRF instance
+reg_param = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1., 2., 5., 10.]  # Ridge parameter
 ridge_trf = TRFEstimator(tmin=-0.2, tmax=0.8, srate=1/eeg[0].time.tstep,
                          alpha=reg_param)
 
 # Fit our model
-scores, alpha = ridge_trf.xfit(x, y, feat_names=["Envelope", "Onset-Envelope"])
-ridge_trf.plot(feat_id=[0, 1], figsize=(10, 6))
+scores, alpha = ridge_trf.xfit(x, y, n_splits=10, feat_names=["Word-Onset"])
+fig = ridge_trf.plot(feat_id=[0], ax=axes[1])
+
+axes[0].legend(('true', 'boosting (a+w)', 'ridge (a+w)'))
+axes[1].legend(('true', 'boosting (a+w)', 'ridge (a+w)', 'boosting (w)', 'ridge (w)'))
+fig.show()
+fig.tight_layout()
