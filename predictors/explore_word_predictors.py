@@ -26,7 +26,7 @@ import seaborn
 
 tempfile = os.path.realpath(os.path.join(__file__, '..',
                                          '..', ".temppath.pickled"))
-DATA_ROOT = Path(load.unpickle(tempfile))
+DATA_ROOT = Path(eelbrain.load.unpickle(tempfile))
 STIMULUS_DIR = DATA_ROOT / 'stimuli'
 PREDICTOR_DIR = DATA_ROOT / 'predictors'
 
