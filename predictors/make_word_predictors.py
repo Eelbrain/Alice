@@ -3,12 +3,15 @@ Generate predictors for word-level variables
 
 See the `explore_word_predictors.py` notebook for more background
 """
+import os
 from pathlib import Path
 
 import eelbrain
 
 
-DATA_ROOT = Path("~").expanduser() / 'Data' / 'Alice'
+tempfile = os.path.realpath(os.path.join(__file__, '..',
+                                         '..', ".temppath.pickled"))
+DATA_ROOT = Path(eelbrain.load.unpickle(tempfile))
 STIMULUS_DIR = DATA_ROOT / 'stimuli'
 PREDICTOR_DIR = DATA_ROOT / 'predictors'
 

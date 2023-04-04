@@ -1,11 +1,14 @@
 """Predictors based on gammatone spectrograms"""
+import os
 from pathlib import Path
 
 import numpy as np
 from eelbrain import *
 from trftools.neural import edge_detector
 
-DATA_ROOT = Path("~").expanduser() / 'Data' / 'Alice'
+tempfile = os.path.realpath(os.path.join(__file__, '..',
+                                         '..', ".temppath.pickled"))
+DATA_ROOT = Path(load.unpickle(tempfile))
 STIMULUS_DIR = DATA_ROOT / 'stimuli'
 PREDICTOR_DIR = DATA_ROOT / 'predictors'
 
