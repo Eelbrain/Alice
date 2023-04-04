@@ -1,11 +1,14 @@
 """Generate high-resolution gammatone spectrograms"""
+import os
 from pathlib import Path
 
 import eelbrain
 
 
 # Define paths to data
-DATA_ROOT = Path("~").expanduser() / 'Data' / 'Alice'
+tempfile = os.path.realpath(os.path.join(__file__, '..',
+                                         '..', ".temppath.pickled"))
+DATA_ROOT = Path(eelbrain.load.unpickle(tempfile))
 STIMULUS_DIR = DATA_ROOT / 'stimuli'
 
 # Loop through the stimuli
