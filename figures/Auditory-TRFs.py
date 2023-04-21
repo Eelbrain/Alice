@@ -43,8 +43,12 @@ RC = {
     'font.family': 'sans-serif',
     'font.sans-serif': FONT,
     'font.size': FONT_SIZE,
+    'figure.labelsize': FONT_SIZE,
+    'figure.titlesize': FONT_SIZE,
     'axes.labelsize': FONT_SIZE,
     'axes.titlesize': FONT_SIZE,
+    'xtick.labelsize': FONT_SIZE,
+    'ytick.labelsize': FONT_SIZE,    
 }
 pyplot.rcParams.update(RC)
 # -
