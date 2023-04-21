@@ -35,6 +35,13 @@ onset_envelope = [eelbrain.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='o
 gammatone_onsets = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-on-8.pickle') for stimulus in STIMULI]
 gammatone_onsets = [x.bin(0.01, dim='time', label='start') for x in gammatone_onsets]
 gammatone_onsets = [eelbrain.set_time(x, gt.time, name='gammatone_on') for x, gt in zip(gammatone_onsets, gammatone)]
+# Load linear and powerlaw scaled spectrograms
+gammatone_lin = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-lin-8.pickle') for stimulus in STIMULI]
+gammatone_lin = [x.bin(0.01, dim='time', label='start') for x in gammatone_lin]
+gammatone_lin = [eelbrain.set_time(x, gt.time, name='gammatone_on') for x, gt in zip(gammatone_lin, gammatone)]
+gammatone_pow = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-pow-8.pickle') for stimulus in STIMULI]
+gammatone_pow = [x.bin(0.01, dim='time', label='start') for x in gammatone_pow]
+gammatone_pow = [eelbrain.set_time(x, gt.time, name='gammatone_on') for x, gt in zip(gammatone_pow, gammatone)]
 # Load word tables and convert tables into continuous time-series with matching time dimension
 word_tables = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~word.pickle') for stimulus in STIMULI]
 word_onsets = [eelbrain.event_impulse_predictor(gt.time, ds=ds, name='word') for gt, ds in zip(gammatone, word_tables)]
@@ -49,8 +56,13 @@ durations = [gt.time.tmax for stimulus, gt in zip(STIMULI, gammatone)]
 # ------
 # Pre-define models here to have easier access during estimation. In the future, additional models could be added here and the script re-run to generate additional TRFs.
 models = {
-    # Acoustic models
     'envelope': [envelope],
+    # Compare different scales for the acoustic response
+    'gammatone': [gammatone],
+    'gammatone-lin': [gammatone_lin],
+    'gammatone-pow': [gammatone_pow],
+    'gammatone-lin+log': [gammatone_lin, gammatone],
+    # The acoustic edge detection model
     'envelope+onset': [envelope, onset_envelope],
     'acoustic': [gammatone, gammatone_onsets],
     # Models with word-onsets and word-class
