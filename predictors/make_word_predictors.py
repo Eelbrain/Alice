@@ -28,13 +28,13 @@ for segment in range(1, 13):
     segment_table = word_table.sub(f"Segment == {segment}")
     # Initialize a new Dataset with just the time-stamp of the words; add an
     # info dictionary with the duration of the stimulus ('tstop')
-    ds = eelbrain.Dataset({'time': segment_table['onset']}, info={'tstop': segment_table[-1, 'offset']})
+    data = eelbrain.Dataset({'time': segment_table['onset']}, info={'tstop': segment_table[-1, 'offset']})
     # Add predictor variables to the new Dataset
-    ds['LogFreq'] = segment_table['InvLogFreq']
+    data['LogFreq'] = segment_table['InvLogFreq']
     for key in ['NGRAM', 'RNN', 'CFG', 'Position']:
-        ds[key] = segment_table[key]
+        data[key] = segment_table[key]
     # Create and add boolean masks for lexical and non-lexical words
-    ds['lexical'] = segment_table['IsLexical'] == True
-    ds['nlexical'] = segment_table['IsLexical'] == False
+    data['lexical'] = segment_table['IsLexical'] == True
+    data['nlexical'] = segment_table['IsLexical'] == False
     # Save the Dataset for this stimulus
-    eelbrain.save.pickle(ds, PREDICTOR_DIR / f'{segment}~word.pickle')
+    eelbrain.save.pickle(data, PREDICTOR_DIR / f'{segment}~word.pickle')

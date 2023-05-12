@@ -70,7 +70,7 @@ for basis in basis_values:
     data[:, 'basis_ms'] = int(basis * 1000)
     datasets[basis] = data
 # Combined dataset for explanatory power
-data = eelbrain.combine([ds['subject', 'basis', 'basis_ms', 'det'] for ds in datasets.values()])
+data = eelbrain.combine([data['subject', 'basis', 'basis_ms', 'det'] for data in datasets.values()])
 # Average predictive power across sensors for easier comparison
 data['det_mean'] = data['det'].mean('sensor') * 100
 
@@ -79,11 +79,11 @@ data.head()
 # -
 
 # Plot predictive power by basis window
-p = eelbrain.plot.Barplot('det_mean', 'basis', match='subject', ds=data, bottom=0.0020, corr=False)
+p = eelbrain.plot.Barplot('det_mean', 'basis', match='subject', data=data, bottom=0.0020, corr=False)
 
 # Plot the three TRFs
 for basis, data_basis in datasets.items():
-    p = eelbrain.plot.TopoButterfly("gammatone.sum('frequency')", ds=data_basis, t=0.040, clip='circle')
+    p = eelbrain.plot.TopoButterfly("gammatone.sum('frequency')", data=data_basis, t=0.040, clip='circle')
 
 # Plot the sensor map to determine which sensor to use in the figure
 p = eelbrain.plot.SensorMap(datasets[0]['gammatone'])
@@ -127,7 +127,7 @@ figure.text(0.01, 0.76, 'A', size=10)
 ax = figure.add_subplot(gridspec[1:, 0])
 ax.yaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(decimals=3, symbol=''))
 ax.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(0.005))
-p = eelbrain.plot.Barplot('det_mean', 'basis_ms', match='subject', ds=data, axes=ax, corr=False, ylabel='Predictive power (% explained)', xlabel='Basis [ms]', frame=False, bottom=.195, top=0.205, colors=COLORS)
+p = eelbrain.plot.Barplot('det_mean', 'basis_ms', match='subject', data=data, axes=ax, corr=False, ylabel='Predictive power (% explained)', xlabel='Basis [ms]', frame=False, bottom=.195, top=0.205, colors=COLORS)
 
 # Sensor map
 figure.text(0.31, 0.96, 'B', size=10)
@@ -140,12 +140,12 @@ for i, subject in enumerate(['S04', 'S06']):
     ax = figure.add_subplot(gridspec[i, 2])
     s_data = data.sub(f"subject == '{subject}'")
     legend = (0.78, 0.82) if i == 0 else False
-    eelbrain.plot.UTSStat('gammatone_sensor*1000', 'basis_ms', error=False, ds=s_data, axes=ax, frame='t', xlabel=False, xticklabels=False, ylabel=False, labels=LABELS, colors=COLORS, legend=legend)
+    eelbrain.plot.UTSStat('gammatone_sensor*1000', 'basis_ms', error=False, data=s_data, axes=ax, frame='t', xlabel=False, xticklabels=False, ylabel=False, labels=LABELS, colors=COLORS, legend=legend)
     ax.set_title(f'Subject {subject}', loc='left')
 
 # Average TRF
 ax = figure.add_subplot(gridspec[2, 2], sharey=ax)
-eelbrain.plot.UTSStat('gammatone_sensor*1000', 'basis_ms', ds=data, axes=ax, frame='t', legend=False, colors=COLORS, ylabel=r"V (normalized $\times 10^4$)")
+eelbrain.plot.UTSStat('gammatone_sensor*1000', 'basis_ms', data=data, axes=ax, frame='t', legend=False, colors=COLORS, ylabel=r"V (normalized $\times 10^4$)")
 ax.set_title('All subjects', loc='left')
 
 # Add windows to TRF plot

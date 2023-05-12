@@ -22,9 +22,9 @@ for trial in range(1, 13):
     gammatone = gammatone.bin(0.01)
     events = eelbrain.load.unpickle(PREDICTOR_DIR / f'{trial}~word.pickle')
     # turn categorial predictors into time-series matching the spectrogram
-    word = eelbrain.event_impulse_predictor(gammatone, time='time', value=1, ds=events, name='word')
-    lexical = eelbrain.event_impulse_predictor(gammatone, time='time', value='lexical', ds=events, name='lexical')
-    non_lexical = eelbrain.event_impulse_predictor(gammatone, time='time', value='nlexical', ds=events, name='non_lexical')
+    word = eelbrain.event_impulse_predictor(gammatone, time='time', value=1, data=events, name='word')
+    lexical = eelbrain.event_impulse_predictor(gammatone, time='time', value='lexical', data=events, name='lexical')
+    non_lexical = eelbrain.event_impulse_predictor(gammatone, time='time', value='nlexical', data=events, name='non_lexical')
     # store ndvars in lists
     gammatone_trials.append(gammatone)
     word_trials.append(word)

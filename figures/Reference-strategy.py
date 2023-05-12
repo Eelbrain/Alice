@@ -80,7 +80,7 @@ reference_labels = {
 # Plot the prediction accuracies 
 for reference_idx, reference in enumerate(reference_labels):
     axes = figure.add_subplot(gridspec[reference_idx*3: reference_idx*3+3, 0:3])
-    p = eelbrain.plot.Topomap('prediction_accuracy', ds=data_trfs[data_trfs['reference']==reference], axes=axes, **det_args)
+    p = eelbrain.plot.Topomap('prediction_accuracy', data=data_trfs[data_trfs['reference']==reference], axes=axes, **det_args)
     label = reference_labels[reference]
     axes.set_title(f"Referenced to {label}", loc='left', size=10)
 p.plot_colorbar(below=axes, label="Pearson's r", ticks=2, h=2)

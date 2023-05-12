@@ -64,14 +64,14 @@ for subject in SUBJECTS:
 data_envelope = eelbrain.Dataset.from_caselist(['subject', 'det', 'trf'], rows)
 
 # test that model predictive power on held-out data is > 0
-test_envelope = eelbrain.testnd.TTestOneSample('det', ds=data_envelope, tail=1, pmin=0.05)
+test_envelope = eelbrain.testnd.TTestOneSample('det', data=data_envelope, tail=1, pmin=0.05)
 p = eelbrain.plot.Topomap(test_envelope, clip='circle', w=2)
 cb = p.plot_colorbar(width=0.1, w=2)
 
 # ## Envelope TRF
 # Test the TRF with a one-sample *t*-test against 0. This tests the null-hypothesis that the electrical current direction at each time point was random across subjects. The systematic current directions shown below at anterior electrodes are typical of auditory responses. 
 
-trf_envelope = eelbrain.testnd.TTestOneSample('trf', ds=data_envelope, pmin=0.05)
+trf_envelope = eelbrain.testnd.TTestOneSample('trf', data=data_envelope, pmin=0.05)
 
 p = eelbrain.plot.TopoArray(trf_envelope, t=[0.040, 0.090, 0.140, 0.250, 0.400], clip='circle', cmap='xpolar')
 cb = p.plot_colorbar(width=0.1)
@@ -89,7 +89,7 @@ for subject in SUBJECTS:
 data_onset = eelbrain.Dataset.from_caselist(['subject', 'det', *x_names], rows)
 
 # Compare predictive power of the two models
-test_onset = eelbrain.testnd.TTestOneSample('det', ds=data_onset, tail=1, pmin=0.05)
+test_onset = eelbrain.testnd.TTestOneSample('det', data=data_onset, tail=1, pmin=0.05)
 # Paired t-test by specifying two measurement NDVars with matched cases
 # Note that this presupposes that subjects are in the same order
 test_onset_envelope = eelbrain.testnd.TTestRelated(data_onset['det'], data_envelope['det'], tail=1, pmin=0.05)
@@ -99,8 +99,8 @@ p = eelbrain.plot.Topomap(
     ncol=2, clip='circle')
 cb = p.plot_colorbar(width=0.1)
 
-trf_eo_envelope = eelbrain.testnd.TTestOneSample('envelope', ds=data_onset, pmin=0.05)
-trf_eo_onset = eelbrain.testnd.TTestOneSample('onset', ds=data_onset, pmin=0.05)
+trf_eo_envelope = eelbrain.testnd.TTestOneSample('envelope', data=data_onset, pmin=0.05)
+trf_eo_onset = eelbrain.testnd.TTestOneSample('onset', data=data_onset, pmin=0.05)
 
 # # C) Full acoustic model
 # Load results form the full which included spectrogram as well as an onset spectrogram, both predictors represented as 2d time-series with 8 frequency bins each.
@@ -116,7 +116,7 @@ data_acoustic = eelbrain.Dataset.from_caselist(['subject', 'det', *x_names], row
 print(x_names)
 
 # Compare predictive power of the two models
-test_acoustic = eelbrain.testnd.TTestOneSample('det', ds=data_acoustic, tail=1, pmin=0.05)
+test_acoustic = eelbrain.testnd.TTestOneSample('det', data=data_acoustic, tail=1, pmin=0.05)
 # Paired t-test by specifying two measurement NDVars with matched cases
 # Note that this presupposes that subjects are in the same order
 test_acoustic_onset = eelbrain.testnd.TTestRelated(data_acoustic['det'], data_onset['det'], tail=1, pmin=0.05)
@@ -132,8 +132,8 @@ cb = p.plot_colorbar(width=0.1)
 #  1) Sum across the frequency, based on the assumtopn that TRFs are similar for different frequency bands
 #  2) Average across a group of neighboring sensors, to verify this assumtopn 
 
-trf_spectrogram = eelbrain.testnd.TTestOneSample("gammatone.sum('frequency')", ds=data_acoustic, pmin=0.05)
-trf_onset_spectrogram = eelbrain.testnd.TTestOneSample("gammatone_on.sum('frequency')", ds=data_acoustic, pmin=0.05)
+trf_spectrogram = eelbrain.testnd.TTestOneSample("gammatone.sum('frequency')", data=data_acoustic, pmin=0.05)
+trf_onset_spectrogram = eelbrain.testnd.TTestOneSample("gammatone_on.sum('frequency')", data=data_acoustic, pmin=0.05)
 
 p = eelbrain.plot.TopoArray([trf_spectrogram, trf_onset_spectrogram], t=[0.050, 0.100, 0.150, 0.450], xlim=(-0.050, 0.950))
 
@@ -166,10 +166,10 @@ model_data = eelbrain.Dataset.from_caselist(['subject', 'model', 'det'], rows)
 index = model_data['model'] == 'acoustic'
 model_data['det'] *= 100 / model_data[index, 'det'].mean('case').max('sensor')
 # Redo tests with adjusted predictive power 
-test_envelope = eelbrain.testnd.TTestOneSample('det', sub="model == 'envelope'", ds=model_data, tail=1, pmin=0.05)
-test_acoustic = eelbrain.testnd.TTestOneSample('det', sub="model == 'acoustic'", ds=model_data, tail=1, pmin=0.05)
-test_onset_envelope = eelbrain.testnd.TTestRelated('det', 'model', 'envelope+onset', 'envelope', 'subject', ds=model_data, tail=1, pmin=0.05)
-test_acoustic_onset = eelbrain.testnd.TTestRelated('det', 'model', 'acoustic', 'envelope+onset', 'subject', ds=model_data, tail=1, pmin=0.05)
+test_envelope = eelbrain.testnd.TTestOneSample('det', sub="model == 'envelope'", data=model_data, tail=1, pmin=0.05)
+test_acoustic = eelbrain.testnd.TTestOneSample('det', sub="model == 'acoustic'", data=model_data, tail=1, pmin=0.05)
+test_onset_envelope = eelbrain.testnd.TTestRelated('det', 'model', 'envelope+onset', 'envelope', 'subject', data=model_data, tail=1, pmin=0.05)
+test_acoustic_onset = eelbrain.testnd.TTestRelated('det', 'model', 'acoustic', 'envelope+onset', 'subject', data=model_data, tail=1, pmin=0.05)
 
 # +
 # Initialize figure

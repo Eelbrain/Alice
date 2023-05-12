@@ -87,10 +87,10 @@ data_det.head()
 
 # # Model comparisons
 
-p = eelbrain.plot.Barplot('det_mean', 'scale', match='subject', cells=SCALES, ds=data_det, h=3, w=2, xtick_rotation=90)
+p = eelbrain.plot.Barplot('det_mean', 'scale', match='subject', cells=SCALES, data=data_det, h=3, w=2, xtick_rotation=90)
 
 for scale, data in datasets.items():
-    p = eelbrain.plot.Array([f"{trf}.mean('sensor')" for trf in data.info['trfs']], ncol=1, ds=data, title=scale, axh=2, axw=3)
+    p = eelbrain.plot.Array([f"{trf}.mean('sensor')" for trf in data.info['trfs']], ncol=1, data=data, title=scale, axh=2, axw=3)
 
 # # Figure
 
@@ -143,17 +143,17 @@ for i, sgram, scale in zip(range(3), sgrams, SCALES):
 for i, scale in enumerate(SCALES):
     ax = figure.add_subplot(gridspec[i*2:(i+1)*2, 3])
     data = datasets[scale]
-    p = eelbrain.plot.Topomap('det', ds=data, axes=ax, **det_args)
+    p = eelbrain.plot.Topomap('det', data=data, axes=ax, **det_args)
     if i == 2:
         p.plot_colorbar(below=ax)
 
 # Predictive power comparison
 figure.text(0.01, 0.55, 'C', size=10)
 ax = figure.add_subplot(gridspec[3:, 0])
-p = eelbrain.plot.Barplot('det_mean', 'scale', match='subject', ds=data_det, cells=MODELS, axes=ax, test=False, ylabel='Predictive power', xlabel='Scale', frame=False, xtick_rotation=20, top=.0022)
-res = eelbrain.test.TTestRelated('det_mean', 'scale', 'power', 'linear', 'subject', ds=data_det)
+p = eelbrain.plot.Barplot('det_mean', 'scale', match='subject', data=data_det, cells=MODELS, axes=ax, test=False, ylabel='Predictive power', xlabel='Scale', frame=False, xtick_rotation=20, top=.0022)
+res = eelbrain.test.TTestRelated('det_mean', 'scale', 'power', 'linear', 'subject', data=data_det)
 p.mark_pair('linear', 'power', .002, mark=res.p)
-res = eelbrain.test.TTestRelated('det_mean', 'scale', 'log', 'power', 'subject', ds=data_det)
+res = eelbrain.test.TTestRelated('det_mean', 'scale', 'log', 'power', 'subject', data=data_det)
 p.mark_pair('power', 'log', .0023, mark=res.p)
 
 figure.savefig(DST / 'Auditory-Scale.pdf')
