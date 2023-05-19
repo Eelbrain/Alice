@@ -80,9 +80,20 @@ predictors_concatenated = eelbrain.concatenate(gammatone)
 
 # Learning the TRFs via boosting
 # slective_stopping and basis controls two facets of regularization.
-boosting_trf = eelbrain.boosting(eeg_concatenated, predictors_concatenated,
-                                 -0.1, 1., basis=0.05, error='l1', partitions=10,
-                                 selective_stopping=8)
+boosting_trfs_fname = DST / '.boosting_trfs_simulation.pkl'
+if boosting_trfs_fname.exists():
+    boosting_trfs = eelbrain.load.unpickle(boosting_trfs_fname)
+else:
+    boosting_trfs = [eelbrain.boosting(eeg_concatenated, predictors_concatenated,
+                                    -0.1, 1., basis=0.05, error='l1', partitions=10,
+                                    selective_stopping=ii, test=1, partition_results=True)
+                                    for ii in range(1, 15, 1)]
+    eelbrain.save.pickle(boosting_trfs, boosting_trfs_fname)
+# Select selective_stopping when explained variances in test data starts decreasing
+explained_variances_in_test = [model.proportion_explained for model in boosting_trfs]
+increments = np.diff(explained_variances_in_test, prepend=0)
+best_stopping = np.where(increments < 0)[0][0] - 1
+boosting_trf = boosting_trfs[best_stopping]
 
 # Learning TRFs via Ridge regression using pyEEG
 x = predictors_concatenated.get_data(('time', 'frequency'))
@@ -94,6 +105,8 @@ scores, alpha = ridge_trf.xfit(x, y, n_splits=10)
 params = ridge_trf.get_params()
 tt = eelbrain.UTS.from_range(params['tmin'], params['tmax'], 1 / params['srate'])
 ridge_trf.h_scaled = eelbrain.NDVar(ridge_trf.coef_[:, :, 0].T, (frequency, tt), name='gammatone')
+eelbrain.save.pickle(ridge_trf, '.ridge_trf.pkl')
+
 
 hs = eelbrain.combine((strf, boosting_trf.h_scaled.sub(), ridge_trf.h_scaled), dim_intersection=True)
 titles = ('Ground Truth', 'Boosting', 'Ridge')
@@ -121,7 +134,7 @@ axes = []
 for idx, frequency in enumerate(interesting_frequencies):
     axes.append(figure.add_subplot(gridspec[1, idx]))
     axes[-1].set_title(f"frequnecy={frequency:.0f}", loc='left', size=10)
-    axes[-1].set_xlabel('Time[ms]') 
+    axes[-1].set_xlabel('Time[ms]')
     h = hs.sub(frequency=frequency)
     ds.extend([(frequency, *i) for i in zip(h, titles)])
 ds = eelbrain.Dataset.from_caselist(['frequency', 'TRF', 'cond'], ds,)
@@ -136,5 +149,5 @@ figure.text(0.01, 0.49, 'B) TRF comparison', size=10)
 
 figure.savefig(DST / 'TRF comparison.pdf')
 figure.savefig(DST / 'TRF comparison.png')
-legendfig.savefig(DST / 'TRF comparison legend.pdf')
-legendfig.savefig(DST / 'TRF comparison legend.png')
+legendfig.save(DST / 'TRF comparison legend.pdf')
+legendfig.save(DST / 'TRF comparison legend.png')
