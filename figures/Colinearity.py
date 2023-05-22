@@ -1,5 +1,5 @@
 # Author: Proloy Das <pdas6@mgh.harvard.edu>
-"""This script compares Ridge regression and boosting during colinearity"""
+"""This script compares Ridge regression and boosting in presence colinearity"""
 import os
 from pathlib import Path
 import re
