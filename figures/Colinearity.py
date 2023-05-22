@@ -78,7 +78,7 @@ for response in gammatone_response:
 eeg_concatenated = eelbrain.concatenate(eeg)
 predictors_concatenated = eelbrain.concatenate(gammatone)
 
-# Learning the TRFs via boosting
+# # A) Learning the TRFs via boosting
 # slective_stopping and basis controls two facets of regularization.
 boosting_trfs_fname = DST / '.boosting_trfs_simulation.pkl'
 if boosting_trfs_fname.exists():
@@ -95,7 +95,7 @@ increments = np.diff(explained_variances_in_test, prepend=0)
 best_stopping = np.where(increments < 0)[0][0] - 1
 boosting_trf = boosting_trfs[best_stopping]
 
-# Learning TRFs via Ridge regression using pyEEG
+# # B) Learning TRFs via Ridge regression using pyEEG
 x = predictors_concatenated.get_data(('time', 'frequency'))
 y = eeg_concatenated.get_data('time')[:, None]
 # reg_param = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50]  # Ridge parameter
@@ -107,17 +107,17 @@ tt = eelbrain.UTS.from_range(params['tmin'], params['tmax'], 1 / params['srate']
 ridge_trf.h_scaled = eelbrain.NDVar(ridge_trf.coef_[:, :, 0].T, (frequency, tt), name='gammatone')
 eelbrain.save.pickle(ridge_trf, '.ridge_trf.pkl')
 
-
 hs = eelbrain.combine((strf, boosting_trf.h_scaled.sub(), ridge_trf.h_scaled), dim_intersection=True)
 titles = ('Ground Truth', 'Boosting', 'Ridge')
 vmax = hs.max()
 vmin = hs.min()
 
-# Initialize figure
+# #  Generate figure
 figure = pyplot.figure(figsize=(7.5, 5))
 gridspec = figure.add_gridspec(2, 3, left=0.1, right=0.85, hspace=1.5)
 
-# plot TRFs as arrays
+# # A) plot TRFs as arrays
+# ------------------------
 for idx, (h, title) in enumerate(zip(hs, titles)):
     axes = figure.add_subplot(gridspec[0, idx])
     p = eelbrain.plot.Array(h, axes=axes, vmin=vmin, vmax=vmax, )
@@ -127,7 +127,8 @@ for idx, (h, title) in enumerate(zip(hs, titles)):
         p.axes[0].set_ylabel('')
 p.plot_colorbar(right_of=axes, label="TRF weights [a.u.]", ticks=2, w=2)
 
-# plot two active, and one of the inactive frequency TRFs
+# # B) plot two active, and one of the inactive frequency TRFs
+# ------------------------------------------------------------
 interesting_frequencies = frequency.values[np.array([3, 4, 5])]
 ds = []
 axes = []
