@@ -75,6 +75,7 @@ data = eelbrain.combine([data_erp, data_trfs_controlled], dim_intersection=True)
 
 
 # +
+# Normalize responses
 pattern_normalized = data['pattern'] - data['pattern'].mean('time')
 normalize_by = pattern_normalized.std('time')
 normalize_by[normalize_by == 0] = 1  # Avoid division by 0
@@ -132,7 +133,7 @@ sensormap.mark_sensors('1', c='r')
 
 plot = eelbrain.plot.Array(res_topo, axes=axes[0:3], axtitle=['ERP', 'TRF','ERP - TRF'], vmax=vmax)
 
-times = [0.000 ,0.050, 0.100, 0.250, 0.350, 0.800]
+times = [-0.050 ,0.000, 0.100, 0.270, 0.370, 0.800]
 # Add vertical lines on the times of the topographies
 for time in times: 
     plot.add_vline(time, color='k', linestyle='--')
@@ -148,13 +149,16 @@ for type_idx, c_type in enumerate(['ERP', 'TRF']):
         c_axes = axes[9:15]
         axtitle = None
     topomaps = eelbrain.plot.Topomap(topographies, axes=c_axes, axtitle=axtitle, **topo_args)
-    b = topomaps.plot_colorbar(left_of=c_axes[0], label=c_type, **cbar_args)
+    c_axes[0].text(-0.3, 0.5, c_type, ha='right')
+    if type_idx == 0:
+        continue
+    b = topomaps.plot_colorbar(right_of=c_axes[-1], label='V (normalized)', **cbar_args)
 
 # Difference topographies
 c_axes = axes[15:21]
 topographies = [res_topo.masked_difference().sub(time=time) for time in times]
 topomaps = eelbrain.plot.Topomap(topographies, axes=c_axes, axtitle=None, **topo_args)
-b = topomaps.plot_colorbar(left_of=c_axes[0], label='ERP - TRF', **cbar_args)
+c_axes[0].text(-0.3, 0.5, 'ERP - TRF', ha='right')
 
 figure.text(.01, .98, 'A) Comparison of ERP and TRF at single channel', size=10)
 figure.text(.01, .63, 'B) Comparison of ERP and TRF across channels', size=10)
