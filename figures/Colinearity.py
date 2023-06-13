@@ -123,7 +123,7 @@ boosting_trf = boosting_trfs[best_stopping]
 x = predictors_concatenated.get_data(('time', 'frequency'))
 y = eeg_concatenated.get_data('time')[:, None]
 # reg_param = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50]  # Ridge parameter
-reg_param = [0.0001, 0.0002, 0.0005]  # Ridge parameter
+reg_param = [0.02, 0.05, 0.1, 0.2, 0.5, 1]  # Ridge parameter
 ridge_trf = TRFEstimator(tmin=-0.1, tmax=1., srate=1/eeg[0].time.tstep, alpha=reg_param)
 scores, alpha = ridge_trf.xfit(x, y, n_splits=10)
 params = ridge_trf.get_params()
