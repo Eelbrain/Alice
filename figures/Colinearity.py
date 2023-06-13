@@ -36,7 +36,21 @@ TRF_DIR.mkdir(exist_ok=True)
 # Where to save the figure
 DST = DATA_ROOT / 'figures'
 DST.mkdir(exist_ok=True)
- 
+
+# Configure the matplotlib figure style
+FONT = 'Helvetica Neue'
+FONT_SIZE = 8
+RC = {
+    'figure.dpi': 150,
+    'savefig.dpi': 300,
+    'savefig.transparent': True,
+    # Font
+    'font.family': 'sans-serif',
+    'font.sans-serif': FONT,
+    'font.size': FONT_SIZE,
+}
+pyplot.rcParams.update(RC)
+
 # Load stimuli
 # ------------
 # Make sure to name the stimuli so that the TRFs can later be distinguished
@@ -50,7 +64,9 @@ gammatone = [trftools.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='gammat
 # Extract the duration of the stimuli, so we can later match the EEG to the stimuli
 durations = [gt.time.tmax for stimulus, gt in zip(STIMULI, gammatone)]
 
-# Simulate the source time-series
+# Simulate the time locked response time-series
+# two of the adjacent bands in the gammatone (band 3 and 4) are assumed to drive
+# the auditory response with a spatiotemporally alternating pattern.
 tstep = gammatone[0].time.tstep
 frequency = gammatone[0].get_dim(('frequency'))
 time = eelbrain.UTS(0, 0.001, 1000)
@@ -65,6 +81,7 @@ strf.x *= 1e-8
 strf = eelbrain.resample(strf, 1/tstep)
 gammatone_response = [eelbrain.convolve(strf, x) for x in gammatone]
 
+# Add pink noise to the auditory responses to simulate raw EEG data
 eeg = []
 for response in gammatone_response:
     response -= response.mean('time')
@@ -77,7 +94,7 @@ for response in gammatone_response:
 eeg_concatenated = eelbrain.concatenate(eeg)
 predictors_concatenated = eelbrain.concatenate(gammatone)
 
-# Learning the TRFs via boosting
+## Learning the TRFs via boosting
 # slective_stopping and basis controls two facets of regularization.
 boosting_trfs_fname = DST / '.boosting_trfs_simulation.pkl'
 if boosting_trfs_fname.exists():
@@ -94,7 +111,7 @@ increments = np.diff(explained_variances_in_test, prepend=0)
 best_stopping = np.where(increments < 0)[0][0] - 1
 boosting_trf = boosting_trfs[best_stopping]
 
-# Learning TRFs via Ridge regression using pyEEG
+## Learning TRFs via Ridge regression using pyEEG
 x = predictors_concatenated.get_data(('time', 'frequency'))
 y = eeg_concatenated.get_data('time')[:, None]
 # reg_param = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50]  # Ridge parameter
@@ -106,8 +123,8 @@ tt = eelbrain.UTS.from_range(params['tmin'], params['tmax'], 1 / params['srate']
 ridge_trf.h_scaled = eelbrain.NDVar(ridge_trf.coef_[:, :, 0].T, (frequency, tt), name='gammatone')
 eelbrain.save.pickle(ridge_trf, '.ridge_trf.pkl')
 
-
-hs = eelbrain.combine((strf, boosting_trf.h_scaled.sub(), ridge_trf.h_scaled), dim_intersection=True)
+# Prepare mTRFs for ploting
+hs = eelbrain.combine((strf, boosting_trf.h_scaled, ridge_trf.h_scaled), dim_intersection=True)
 titles = ('Ground Truth', 'Boosting', 'Ridge')
 vmax = hs.max()
 vmin = hs.min()
@@ -130,23 +147,23 @@ p.plot_colorbar(right_of=axes, label="TRF weights [a.u.]", ticks=2, w=2)
 interesting_frequencies = frequency.values[np.array([3, 4, 5])]
 ds = []
 axes = []
-for idx, frequency in enumerate(interesting_frequencies):
+for idx, freq in enumerate(interesting_frequencies):
     axes.append(figure.add_subplot(gridspec[1, idx]))
-    axes[-1].set_title(f"frequnecy={frequency:.0f}", loc='left', size=10)
+    axes[-1].set_title(f"frequnecy={freq:.0f}", loc='right', size=10)
     axes[-1].set_xlabel('Time[ms]')
-    h = hs.sub(frequency=frequency)
-    ds.extend([(frequency, *i) for i in zip(h, titles)])
+    h = hs.sub(frequency=freq)
+    ds.extend([(freq, *i) for i in zip(h, titles)])
 ds = eelbrain.Dataset.from_caselist(['frequency', 'TRF', 'cond'], ds,)
 colors = dict((key, eelbrain.plot.unambiguous_color(color) + (0.70,))  for key, color in zip(titles, ('black', 'orange', 'sky blue')))
 p = eelbrain.plot.UTSStat('TRF', x='cond', xax='frequency', error=None, ds=ds,
                           axtitle=False, yticklabels='left', axes=axes, legend=False,
-                          xlabel=False, colors=colors)
-legendfig = p.plot_legend()
+                          xlabel=False, ylabel='TRF weights [a.u.]', colors=colors)
 
 figure.text(0.01, 0.96, 'A) Gammatone TRF', size=10)
 figure.text(0.01, 0.49, 'B) TRF comparison', size=10)
+labels = list(p._LegendMixin__handles.keys())
+handles = [p._LegendMixin__handles[k] for k in labels]
+pyplot.figlegend(handles, labels, loc='center right', ncols=3)
 
 figure.savefig(DST / 'TRF comparison.pdf')
 figure.savefig(DST / 'TRF comparison.png')
-legendfig.save(DST / 'TRF comparison legend.pdf')
-legendfig.save(DST / 'TRF comparison legend.png')
