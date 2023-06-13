@@ -21,7 +21,6 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as pyplot
 import eelbrain
-import trftools
 
 from scipy.signal import windows
 from pyeeg.models import TRFEstimator
@@ -61,7 +60,7 @@ gammatone = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-8.pic
 # Resample the spectrograms to 100 Hz (time-step = 0.01 s), which we will use for TRFs
 gammatone = [x.bin(0.01, dim='time', label='start') for x in gammatone]
 # Pad onset with 100 ms and offset with 1 second; make sure to give the predictor a unique name as that will make it easier to identify the TRF later
-gammatone = [trftools.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='gammatone') for x in gammatone]
+gammatone = [eelbrain.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='gammatone') for x in gammatone]
 
 # Extract the duration of the stimuli, so we can later match the EEG to the stimuli
 durations = [gt.time.tmax for stimulus, gt in zip(STIMULI, gammatone)]
