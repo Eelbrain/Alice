@@ -1,8 +1,22 @@
-# Author: Proloy Das <pdas6@mgh.harvard.edu>
-"""This script compares Ridge regression and boosting in presence colinearity"""
-import os
+# ---
+# jupyter:
+#   jupytext:
+#     formats: ipynb,py:light
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.11.3
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
+# ---
+
+# # Ridge regression vs. boosting figure (in presence colinearity)
+
+# +
 from pathlib import Path
-import re
 
 import numpy as np
 import matplotlib.pyplot as pyplot
@@ -11,19 +25,6 @@ import trftools
 
 from scipy.signal import windows
 from pyeeg.models import TRFEstimator
-
-
-def plot_trf_ndvars(trfs, axes=None):
-    if axes is None:
-        fig, axes = pyplot.subplots(len(trfs))
-    else:
-        assert len(axes) == len(trfs)
-        fig = axes[0].figure
-    for h, ax in zip(trfs, axes):
-        taxis = np.linspace(*(map(lambda x: getattr(h.time, x),
-                                  ('tmin', 'tmax', 'nsamples'))))
-        ax.plot(taxis, h.get_data('time'))
-    return fig
 
 
 STIMULI = [str(i) for i in range(1, 13)]
@@ -38,7 +39,7 @@ DST = DATA_ROOT / 'figures'
 DST.mkdir(exist_ok=True)
 
 # Configure the matplotlib figure style
-FONT = 'Helvetica Neue'
+FONT = 'Arial'
 FONT_SIZE = 8
 RC = {
     'figure.dpi': 150,
@@ -51,6 +52,7 @@ RC = {
 }
 pyplot.rcParams.update(RC)
 
+# +
 # Load stimuli
 # ------------
 # Make sure to name the stimuli so that the TRFs can later be distinguished
@@ -64,7 +66,9 @@ gammatone = [trftools.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='gammat
 # Extract the duration of the stimuli, so we can later match the EEG to the stimuli
 durations = [gt.time.tmax for stimulus, gt in zip(STIMULI, gammatone)]
 
-# Simulate the time locked response time-series
+# +
+# Simulate the EEG
+# ---------------------------------------------
 # two of the adjacent bands in the gammatone (band 3 and 4) are assumed to drive
 # the auditory response with a spatiotemporally alternating pattern.
 tstep = gammatone[0].time.tstep
@@ -94,16 +98,18 @@ for response in gammatone_response:
 eeg_concatenated = eelbrain.concatenate(eeg)
 predictors_concatenated = eelbrain.concatenate(gammatone)
 
-## Learning the TRFs via boosting
+# +
+# Learning the TRFs via boosting
+# ------------------------------
 # slective_stopping and basis controls two facets of regularization.
 boosting_trfs_fname = DST / '.boosting_trfs_simulation.pkl'
 if boosting_trfs_fname.exists():
     boosting_trfs = eelbrain.load.unpickle(boosting_trfs_fname)
 else:
     boosting_trfs = [eelbrain.boosting(eeg_concatenated, predictors_concatenated,
-                                    -0.1, 1., basis=0.05, error='l1', partitions=10,
-                                    selective_stopping=ii, test=1, partition_results=True)
-                                    for ii in range(1, 15, 1)]
+                                       -0.1, 1., basis=0.05, error='l1', partitions=10,
+                                       selective_stopping=ii, test=1, partition_results=True)
+                                       for ii in range(1, 15, 1)]
     eelbrain.save.pickle(boosting_trfs, boosting_trfs_fname)
 # Select selective_stopping when explained variances in test data starts decreasing
 explained_variances_in_test = [model.proportion_explained for model in boosting_trfs]
@@ -111,7 +117,9 @@ increments = np.diff(explained_variances_in_test, prepend=0)
 best_stopping = np.where(increments < 0)[0][0] - 1
 boosting_trf = boosting_trfs[best_stopping]
 
-## Learning TRFs via Ridge regression using pyEEG
+# +
+# Learning TRFs via Ridge regression using pyEEG
+# ----------------------------------------------
 x = predictors_concatenated.get_data(('time', 'frequency'))
 y = eeg_concatenated.get_data('time')[:, None]
 # reg_param = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50]  # Ridge parameter
@@ -123,6 +131,7 @@ tt = eelbrain.UTS.from_range(params['tmin'], params['tmax'], 1 / params['srate']
 ridge_trf.h_scaled = eelbrain.NDVar(ridge_trf.coef_[:, :, 0].T, (frequency, tt), name='gammatone')
 eelbrain.save.pickle(ridge_trf, '.ridge_trf.pkl')
 
+# +
 # Prepare mTRFs for ploting
 hs = eelbrain.combine((strf, boosting_trf.h_scaled, ridge_trf.h_scaled), dim_intersection=True)
 titles = ('Ground Truth', 'Boosting', 'Ridge')
