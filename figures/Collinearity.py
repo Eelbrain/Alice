@@ -6,14 +6,14 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.11.3
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
 
-# # Ridge regression vs. boosting figure (in presence colinearity)
+# Simulations comparing boosting with ridge regression in presence collinearity.
 
 # +
 from pathlib import Path
@@ -33,6 +33,10 @@ PREDICTOR_DIR = DATA_ROOT / 'predictors'
 TRF_DIR = DATA_ROOT / 'TRFs'
 TRF_DIR.mkdir(exist_ok=True)
 
+# Where to cache simulation results
+SIMULATION_DIR = DATA_ROOT / 'simulations'
+SIMULATION_DIR.mkdir(exist_ok=True)
+
 # Where to save the figure
 DST = DATA_ROOT / 'figures'
 DST.mkdir(exist_ok=True)
@@ -50,10 +54,11 @@ RC = {
     'font.size': FONT_SIZE,
 }
 pyplot.rcParams.update(RC)
+# -
+
+# # Load stimuli
 
 # +
-# Load stimuli
-# ------------
 # Make sure to name the stimuli so that the TRFs can later be distinguished
 # Load the gammatone-spectrograms; use the time axis of these as reference
 gammatone = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-8.pickle') for stimulus in STIMULI]
@@ -64,10 +69,11 @@ gammatone = [eelbrain.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='gammat
 
 # Extract the duration of the stimuli, so we can later match the EEG to the stimuli
 durations = [gt.time.tmax for stimulus, gt in zip(STIMULI, gammatone)]
+# -
+
+# # Simulate the EEG
 
 # +
-# Simulate the EEG
-# ---------------------------------------------
 # two of the adjacent bands in the gammatone (band 3 and 4) are assumed to drive
 # the auditory response with a spatiotemporally alternating pattern.
 tstep = gammatone[0].time.tstep
@@ -96,82 +102,73 @@ for response in gammatone_response:
 # estimation
 eeg_concatenated = eelbrain.concatenate(eeg)
 predictors_concatenated = eelbrain.concatenate(gammatone)
+# -
 
-# +
-# Learning the TRFs via boosting
-# ------------------------------
-# slective_stopping and basis controls two facets of regularization.
-boosting_trfs_fname = DST / '.boosting_trfs_simulation.pkl'
-if boosting_trfs_fname.exists():
-    boosting_trfs = eelbrain.load.unpickle(boosting_trfs_fname)
+# # Learn TRFs via boosting
+
+# selective_stopping controls one facet of regularization
+cache_path = SIMULATION_DIR / 'boosting.pickle'
+if cache_path.exists():
+    boosting_trfs = eelbrain.load.unpickle(cache_path)
 else:
-    boosting_trfs = [eelbrain.boosting(eeg_concatenated, predictors_concatenated,
-                                       -0.1, 1., basis=0.05, error='l1', partitions=10,
-                                       selective_stopping=ii, test=1, partition_results=True)
-                                       for ii in range(1, 15, 1)]
-    eelbrain.save.pickle(boosting_trfs, boosting_trfs_fname)
+    boosting_trfs = [eelbrain.boosting(eeg_concatenated, predictors_concatenated, -0.1, 1., basis=0.05, error='l1', partitions=10, selective_stopping=ii, test=1, partition_results=True) for ii in range(1, 15, 1)]
+    eelbrain.save.pickle(boosting_trfs, cache_path)
 # Select selective_stopping when explained variances in test data starts decreasing
 explained_variances_in_test = [model.proportion_explained for model in boosting_trfs]
 increments = np.diff(explained_variances_in_test, prepend=0)
 best_stopping = np.where(increments < 0)[0][0] - 1
 boosting_trf = boosting_trfs[best_stopping]
 
-# +
-# Learning TRFs via Ridge regression using pyEEG
-# ----------------------------------------------
-x = predictors_concatenated.get_data(('time', 'frequency'))
-y = eeg_concatenated.get_data('time')[:, None]
-# reg_param = [0.0001, 0.0002, 0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50]  # Ridge parameter
-reg_param = [0.02, 0.05, 0.1, 0.2, 0.5, 1]  # Ridge parameter
-ridge_trf = TRFEstimator(tmin=-0.1, tmax=1., srate=1/eeg[0].time.tstep, alpha=reg_param)
-scores, alpha = ridge_trf.xfit(x, y, n_splits=10)
-params = ridge_trf.get_params()
-tt = eelbrain.UTS.from_range(params['tmin'], params['tmax'], 1 / params['srate'])
-ridge_trf.h_scaled = eelbrain.NDVar(ridge_trf.coef_[:, :, 0].T, (frequency, tt), name='gammatone')
-eelbrain.save.pickle(ridge_trf, '.ridge_trf.pkl')
+# # Learn TRFs via Ridge regression using pyEEG
+
+cache_path = SIMULATION_DIR / 'ridge.pickle'
+if cache_path.exists():
+    ridge_trf = eelbrain.load.unpickle(cache_path)
+else:
+    x = predictors_concatenated.get_data(('time', 'frequency'))
+    y = eeg_concatenated.get_data('time')[:, None]
+    reg_param = [0.02, 0.05, 0.1, 0.2, 0.5, 1]  # Ridge parameters
+    ridge_trf = TRFEstimator(tmin=-0.1, tmax=1., srate=1/eeg[0].time.tstep, alpha=reg_param)
+    scores, alpha = ridge_trf.xfit(x, y, n_splits=10)
+    params = ridge_trf.get_params()
+    tt = eelbrain.UTS.from_range(params['tmin'], params['tmax'], 1 / params['srate'])
+    ridge_trf.h_scaled = eelbrain.NDVar(ridge_trf.coef_[:, :, 0].T, (frequency, tt), name='gammatone')
+    eelbrain.save.pickle(ridge_trf, cache_path)
+
+# # Figure
 
 # +
 # Prepare mTRFs for ploting
-hs = eelbrain.combine((strf, boosting_trf.h_scaled, ridge_trf.h_scaled), dim_intersection=True)
-titles = ('Ground Truth', 'Boosting', 'Ridge')
-vmax = hs.max()
-vmin = hs.min()
+# hs = eelbrain.combine((strf, boosting_trf.h_scaled, ridge_trf.h_scaled), dim_intersection=True)
+hs = [strf, boosting_trf.h_scaled, ridge_trf.h_scaled]
+titles = ('Ground truth', 'Boosting', 'Ridge')
+vmax = 8e-9
 
 # Initialize figure
 figure = pyplot.figure(figsize=(7.5, 5))
 gridspec = figure.add_gridspec(2, 3, left=0.1, right=0.85, hspace=1.5)
 
-# plot TRFs as arrays
-for idx, (h, title) in enumerate(zip(hs, titles)):
-    axes = figure.add_subplot(gridspec[0, idx])
-    p = eelbrain.plot.Array(h, axes=axes, vmin=vmin, vmax=vmax, )
-    axes.set_title(title, loc='left', size=10)
-    if idx > 0:
-        p.axes[0].set_yticklabels('')
-        p.axes[0].set_ylabel('')
-p.plot_colorbar(right_of=axes, label="TRF weights [a.u.]", ticks=2, w=2)
+# Plot TRFs as arrays
+axes = [figure.add_subplot(gridspec[0, idx]) for idx in range(3)]
+p = eelbrain.plot.Array(hs, axes=axes, vmax=vmax, xlim=(-0.100, 1.000), axtitle=False)
+p.plot_colorbar(right_of=axes[-1], label="TRF weights [a.u.]", ticks=2, w=2)
+for ax, title in zip(axes, titles):
+    ax.set_title(title, loc='left', size=10)
 
-# plot two active, and one of the inactive frequency TRFs
-interesting_frequencies = frequency.values[np.array([3, 4, 5])]
-ds = []
-axes = []
-for idx, freq in enumerate(interesting_frequencies):
-    axes.append(figure.add_subplot(gridspec[1, idx]))
-    axes[-1].set_title(f"frequnecy={freq:.0f}", loc='right', size=10)
-    axes[-1].set_xlabel('Time[ms]')
-    h = hs.sub(frequency=freq)
-    ds.extend([(freq, *i) for i in zip(h, titles)])
-ds = eelbrain.Dataset.from_caselist(['frequency', 'TRF', 'cond'], ds,)
-colors = dict((key, eelbrain.plot.unambiguous_color(color) + (0.70,))  for key, color in zip(titles, ('black', 'orange', 'sky blue')))
-p = eelbrain.plot.UTSStat('TRF', x='cond', xax='frequency', error=None, ds=ds,
-                          axtitle=False, yticklabels='left', axes=axes, legend=False,
-                          xlabel=False, ylabel='TRF weights [a.u.]', colors=colors)
+# Plot two active, and one of the inactive frequency TRFs
+interesting_frequencies = frequency.values[[3, 4, 5]]
+colors = {key: eelbrain.plot.unambiguous_color(color) + (0.70,) for key, color in zip(titles, ('black', 'orange', 'sky blue'))}
+axes = [figure.add_subplot(gridspec[1, idx]) for idx in range(3)]
+# plot.UTS takes a nested list
+freq_hs = [[h.sub(frequency=freq, name=title) for h, title in zip(hs, titles)] for freq in interesting_frequencies]
+p = eelbrain.plot.UTS(freq_hs, axtitle=False, axes=axes, legend=False, ylabel='TRF weights [a.u.]', colors=colors, xlim=(-0.100, 1.000), bottom=-vmax, top=vmax)
+for ax, title in zip(axes, titles):
+    ax.set_yticks([-vmax, 0, vmax])
+    ax.set_title(title, loc='right', size=10)
 
 figure.text(0.01, 0.96, 'A) Gammatone TRF', size=10)
 figure.text(0.01, 0.49, 'B) TRF comparison', size=10)
-labels = list(p._LegendMixin__handles.keys())
-handles = [p._LegendMixin__handles[k] for k in labels]
-pyplot.figlegend(handles, labels, loc='center right', ncols=3)
+p.plot_legend((0.4, 0.4), ncols=3)
 
-figure.savefig(DST / 'TRF comparison.pdf')
-figure.savefig(DST / 'TRF comparison.png')
+figure.savefig(DST / 'Simulation boosting vs ridge.pdf')
+figure.savefig(DST / 'Simulation boosting vs ridge.png')
