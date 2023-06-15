@@ -162,9 +162,9 @@ axes = [figure.add_subplot(gridspec[1, idx]) for idx in range(3)]
 # plot.UTS takes a nested list
 freq_hs = [[h.sub(frequency=freq, name=title) for h, title in zip(hs, titles)] for freq in interesting_frequencies]
 p = eelbrain.plot.UTS(freq_hs, axtitle=False, axes=axes, legend=False, ylabel='TRF weights [a.u.]', colors=colors, xlim=(-0.100, 1.000), bottom=-vmax, top=vmax)
-for ax, title in zip(axes, titles):
+for ax, frequency_ in zip(axes, interesting_frequencies):
     ax.set_yticks([-vmax, 0, vmax])
-    ax.set_title(title, loc='right', size=10)
+    ax.set_title(f"{frequency_:.0f} Hz", loc='right', size=10)
 
 figure.text(0.01, 0.96, 'A) Gammatone TRF', size=10)
 figure.text(0.01, 0.49, 'B) TRF comparison', size=10)
