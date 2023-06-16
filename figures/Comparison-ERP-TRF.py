@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.14.0
+#       jupytext_version: 1.14.5
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -42,8 +42,13 @@ RC = {
     'font.family': 'sans-serif',
     'font.sans-serif': FONT,
     'font.size': FONT_SIZE,
+    'figure.labelsize': FONT_SIZE,
+    'figure.titlesize': FONT_SIZE,
     'axes.labelsize': FONT_SIZE,
     'axes.titlesize': FONT_SIZE,
+    'xtick.labelsize': FONT_SIZE,
+    'ytick.labelsize': FONT_SIZE,    
+    'legend.fontsize': FONT_SIZE,
 }
 pyplot.rcParams.update(RC)
 # -
@@ -123,22 +128,24 @@ axes = [
     figure.add_subplot(gridspec[7, 5]),
 ]
 
+# A) Fz ERP/TRF plot
 c_axes = figure.add_subplot(gridspec[0:2, 1:5])
-plot = eelbrain.plot.UTSStat('norm_pattern_Fz', 'type', data=data, axes=c_axes, frame='t', ylabel='Normalized pattern [a.u.]', legend=(.81, .88))
+plot = eelbrain.plot.UTSStat('norm_pattern_Fz', 'type', data=data, axes=c_axes, frame='t', ylabel='Normalized pattern [a.u.]', legend=(.58, .88))
 plot.set_clusters(res_fz.clusters, pmax=0.05, ptrend=None, color='.5', y=0, dy=0.1)
-
-c_axes = figure.add_subplot(gridspec[0,4])
+# Sensor map
+c_axes = figure.add_subplot(gridspec[0, 4])
 sensormap = eelbrain.plot.SensorMap(data['pattern'], labels='none', head_radius=0.45, axes=c_axes)
 sensormap.mark_sensors('1', c='r')
 
+# B) Array plots
 plot = eelbrain.plot.Array(res_topo, axes=axes[0:3], axtitle=['ERP', 'TRF','ERP - TRF'], vmax=vmax)
-
+# Times for topomaps
 times = [-0.050 ,0.000, 0.100, 0.270, 0.370, 0.800]
 # Add vertical lines on the times of the topographies
 for time in times: 
     plot.add_vline(time, color='k', linestyle='--')
 
-# ERP/TRF Topographies
+# C) ERP/TRF topographies
 for type_idx, c_type in enumerate(['ERP', 'TRF']): 
     topographies = [data[data['type'] == c_type, 'norm_pattern'].sub(time=time) for time in times]
     
@@ -150,9 +157,8 @@ for type_idx, c_type in enumerate(['ERP', 'TRF']):
         axtitle = None
     topomaps = eelbrain.plot.Topomap(topographies, axes=c_axes, axtitle=axtitle, **topo_args)
     c_axes[0].text(-0.3, 0.5, c_type, ha='right')
-    if type_idx == 0:
-        continue
-    b = topomaps.plot_colorbar(right_of=c_axes[-1], label='V (normalized)', **cbar_args)
+    if type_idx == 1:
+        topomaps.plot_colorbar(right_of=c_axes[-1], label='V (normalized)', **cbar_args)
 
 # Difference topographies
 c_axes = axes[15:21]
@@ -160,9 +166,11 @@ topographies = [res_topo.masked_difference().sub(time=time) for time in times]
 topomaps = eelbrain.plot.Topomap(topographies, axes=c_axes, axtitle=None, **topo_args)
 c_axes[0].text(-0.3, 0.5, 'ERP - TRF', ha='right')
 
+# Panel labels
 figure.text(.01, .98, 'A) Comparison of ERP and TRF at single channel', size=10)
 figure.text(.01, .63, 'B) Comparison of ERP and TRF across channels', size=10)
 figure.text(.01, .33, 'C) Corresponding topographies', size=10)
 
 figure.savefig(DST / 'ERP-TRF.png')
 figure.savefig(DST / 'ERP-TRF.pdf')
+eelbrain.plot.figure_outline()

@@ -6,9 +6,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.11.3
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -42,6 +42,13 @@ RC = {
     'font.family': 'sans-serif',
     'font.sans-serif': FONT,
     'font.size': FONT_SIZE,
+    'figure.labelsize': FONT_SIZE,
+    'figure.titlesize': FONT_SIZE,
+    'axes.labelsize': FONT_SIZE,
+    'axes.titlesize': FONT_SIZE,
+    'xtick.labelsize': FONT_SIZE,
+    'ytick.labelsize': FONT_SIZE,
+    'legend.fontsize': FONT_SIZE,
 }
 pyplot.rcParams.update(RC)
 
@@ -82,7 +89,7 @@ def decorate(ax):
 
 # Average-based
 ax = pyplot.subplot2grid(shape, (0, 0), colspan=7, **ax_args)
-ax.set_title('A) Traditional average model: response at discrete time points', loc='left')
+ax.set_title('A) Traditional average model: response at discrete time points', loc='left', size=10)
 eelbrain.plot.UTS(recording, axes=ax, **uts_args)
 for t in event_times:
     box = pyplot.Rectangle((t, -1), 0.800, 2.2, ec='k', fill=False, alpha=0.5)
@@ -98,7 +105,7 @@ decorate(ax)
 
 # TRF impulse
 ax_b1 = ax = pyplot.subplot2grid(shape, (2, 0), colspan=7, **ax_args)
-ax.set_title('B) TRF to discrete events: each impulse elicits a response', loc='left')
+ax.set_title('B) TRF to discrete events: each impulse elicits a response', loc='left', size=10)
 eelbrain.plot.UTS(stimulus, axes=ax, colors='b', stem=True, **uts_args)
 decorate(ax)
 # TRF
@@ -114,7 +121,7 @@ decorate(ax)
 
 # TRF continuous
 ax_c1 = ax = pyplot.subplot2grid(shape, (5, 0), colspan=7, **ax_args)
-ax.set_title('C) TRF with continuous predictor: each time point elicits a response', loc='left')
+ax.set_title('C) TRF with continuous predictor: each time point elicits a response', loc='left', size=10)
 plot = eelbrain.plot.UTS(stimulus_envelope, axes=ax, colors='b', **uts_args)
 decorate(ax)
 stimulus_handle = plot.plots[0].legend_handles['1.wav']
@@ -134,7 +141,7 @@ response_handle = plot.plots[0].legend_handles['response']
 style = eelbrain.plot.Style('C1', linestyle='--')
 trf_response = eelbrain.convolve(response, stimulus_envelope, name='response')
 ax = pyplot.subplot2grid(shape, (8, 0), colspan=7, **ax_args)
-ax.set_title('D) mTRF: simultaneous additive responses to multiple predictors', loc='left')
+ax.set_title('D) mTRF: simultaneous additive responses to multiple predictors', loc='left', size=10)
 eelbrain.plot.UTS(stimulus_envelope, axes=ax, colors='b', **uts_args)
 plot = eelbrain.plot.UTS(trf_response * .1, axes=ax, colors=style, **uts_args)
 decorate(ax)
@@ -159,7 +166,6 @@ trf_response = trf_response + trf_response_2
 ax = pyplot.subplot2grid(shape, (10, 0), colspan=7, **ax_args)
 eelbrain.plot.UTS(trf_response, axes=ax, **uts_args)
 decorate(ax)
-# ax.set_ylim(-1.1, 1.3)
 
 #add legend
 handles = [stimulus_handle, response_handle, partial_response_handle]
@@ -184,7 +190,6 @@ con = ConnectionPatch(
     **args)
 ax_c1.add_artist(con)
 ax_c1.text(t+0.04, -0.3, '...', ha='left', color='0.5', size=12)
-
 
 figure.savefig(DST / 'Convolution.pdf')
 figure.savefig(DST / 'Convolution.png')

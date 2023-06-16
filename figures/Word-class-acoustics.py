@@ -6,9 +6,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.11.3
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -43,8 +43,13 @@ RC = {
     'font.family': 'sans-serif',
     'font.sans-serif': FONT,
     'font.size': FONT_SIZE,
+    'figure.labelsize': FONT_SIZE,
+    'figure.titlesize': FONT_SIZE,
     'axes.labelsize': FONT_SIZE,
     'axes.titlesize': FONT_SIZE,
+    'xtick.labelsize': FONT_SIZE,
+    'ytick.labelsize': FONT_SIZE,    
+    'legend.fontsize': FONT_SIZE,
 }
 pyplot.rcParams.update(RC)
 # -
@@ -91,6 +96,7 @@ p = eelbrain.plot.TopoArray(word_difference, t=[0.100, 0.220, 0.400], clip='circ
 # Do the same test, but include predictors controlling for responses to acoustic features in both models
 
 lexical_acoustic_model_test = eelbrain.testnd.TTestRelated('det', 'model', 'acoustic+words+lexical', 'acoustic+words', match='subject', data=model_data, tail=1, pmin=0.05)
+print(lexical_acoustic_model_test)
 p = eelbrain.plot.Topomap(lexical_acoustic_model_test, ncol=3, title=lexical_acoustic_model_test)
 
 # ## Acoustic responses?
@@ -101,6 +107,8 @@ p = eelbrain.plot.Topomap(acoustic_model_test, ncol=3, title=acoustic_model_test
 
 # # Analyze spectrogram by word class
 # If auditory responses can explain the difference in response to function and content words, then that suggests that acoustic properties differ between function and content words. We can analyze this directly with TRFs. 
+#
+# NOTE: This requires `analysis/estimate_word_acoustics.py` to be run first, otherwise the next cell will cause a `FileNotFoundError`.
 
 trf_word = eelbrain.load.unpickle(TRF_DIR / 'gammatone~word.pickle')
 trf_lexical = eelbrain.load.unpickle(TRF_DIR / 'gammatone~word+lexical.pickle')

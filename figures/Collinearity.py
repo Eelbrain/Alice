@@ -52,6 +52,13 @@ RC = {
     'font.family': 'sans-serif',
     'font.sans-serif': FONT,
     'font.size': FONT_SIZE,
+    'figure.labelsize': FONT_SIZE,
+    'figure.titlesize': FONT_SIZE,
+    'axes.labelsize': FONT_SIZE,
+    'axes.titlesize': FONT_SIZE,
+    'xtick.labelsize': FONT_SIZE,
+    'ytick.labelsize': FONT_SIZE,    
+    'legend.fontsize': FONT_SIZE,
 }
 pyplot.rcParams.update(RC)
 # -
@@ -145,8 +152,8 @@ titles = ('Ground truth', 'Boosting', 'Ridge')
 vmax = 8e-9
 
 # Initialize figure
-figure = pyplot.figure(figsize=(7.5, 5))
-gridspec = figure.add_gridspec(2, 3, left=0.1, right=0.85, hspace=1.5)
+figure = pyplot.figure(figsize=(7.5, 3.5))
+gridspec = figure.add_gridspec(2, 3, left=0.1, right=0.9, hspace=1., bottom=0.1)
 
 # Plot TRFs as arrays
 axes = [figure.add_subplot(gridspec[0, idx]) for idx in range(3)]
@@ -167,8 +174,9 @@ for ax, frequency_ in zip(axes, interesting_frequencies):
     ax.set_title(f"{frequency_:.0f} Hz", loc='right', size=10)
 
 figure.text(0.01, 0.96, 'A) Gammatone TRF', size=10)
-figure.text(0.01, 0.49, 'B) TRF comparison', size=10)
-p.plot_legend((0.4, 0.4), ncols=3)
+figure.text(0.01, 0.47, 'B) TRF comparison', size=10)
+p.plot_legend((0.53, 0.44), ncols=3)
 
 figure.savefig(DST / 'Simulation boosting vs ridge.pdf')
 figure.savefig(DST / 'Simulation boosting vs ridge.png')
+eelbrain.plot.figure_outline()

@@ -51,6 +51,7 @@ RC = {
     'axes.titlesize': FONT_SIZE,
     'xtick.labelsize': FONT_SIZE,
     'ytick.labelsize': FONT_SIZE,    
+    'legend.fontsize': FONT_SIZE,
 }
 pyplot.rcParams.update(RC)
 
@@ -79,7 +80,7 @@ data.head()
 # -
 
 # Plot predictive power by basis window
-p = eelbrain.plot.Barplot('det_mean', 'basis', match='subject', data=data, bottom=0.0020, corr=False)
+p = eelbrain.plot.Barplot('det_mean', 'basis', match='subject', data=data, bottom=0.199, corr=False, h=3)
 
 # Plot the three TRFs
 for basis, data_basis in datasets.items():
@@ -112,7 +113,7 @@ COLORS = eelbrain.plot.colors_for_oneway(LABELS, unambiguous=True)
 figure = pyplot.figure(figsize=(7.5, 3.5))
 hs = [1, 1, 1]
 ws = [1, 1, 3]
-gridspec = figure.add_gridspec(len(hs), len(ws), top=0.92, bottom=0.15, left=0.11, right=0.95, hspace=0.4, wspace=0.2, height_ratios=hs, width_ratios=ws)
+gridspec = figure.add_gridspec(len(hs), len(ws), top=0.92, bottom=0.15, left=0.11, right=0.99, hspace=0.4, wspace=0.2, height_ratios=hs, width_ratios=ws)
 # Plotting parameters for reusing
 topo_args = dict(clip='circle')
 array_args = dict(xlim=(-0.050, 1.0), axtitle=False)
@@ -123,11 +124,11 @@ t_envelope = [0.050, 0.100, 0.150, 0.400]
 t_onset = [0.060, 0.110, 0.180]
 
 # Predictive power comparison
-figure.text(0.01, 0.76, 'A', size=10)
+figure.text(0.01, 0.76, 'A) Predictive power', size=10)
 ax = figure.add_subplot(gridspec[1:, 0])
 ax.yaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(decimals=3, symbol=''))
 ax.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(0.005))
-p = eelbrain.plot.Barplot('det_mean', 'basis_ms', match='subject', data=data, axes=ax, corr=False, ylabel='Predictive power (% explained)', xlabel='Basis [ms]', frame=False, bottom=.195, top=0.205, colors=COLORS)
+p = eelbrain.plot.Barplot('det_mean', 'basis_ms', match='subject', data=data, axes=ax, corr=False, ylabel='% explained', xlabel='Basis [ms]', frame=False, bottom=.195, top=0.205, colors=COLORS)
 
 # Sensor map
 figure.text(0.31, 0.96, 'B', size=10)
@@ -139,7 +140,7 @@ for i, subject in enumerate(['S04', 'S06']):
     figure.text(0.45, 0.96, 'C', size=10)
     ax = figure.add_subplot(gridspec[i, 2])
     s_data = data.sub(f"subject == '{subject}'")
-    legend = (0.78, 0.82) if i == 0 else False
+    legend = (0.80, 0.82) if i == 0 else False
     eelbrain.plot.UTSStat('gammatone_sensor*1000', 'basis_ms', error=False, data=s_data, axes=ax, frame='t', xlabel=False, xticklabels=False, ylabel=False, labels=LABELS, colors=COLORS, legend=legend)
     ax.set_title(f'Subject {subject}', loc='left')
 
@@ -149,7 +150,7 @@ eelbrain.plot.UTSStat('gammatone_sensor*1000', 'basis_ms', data=data, axes=ax, f
 ax.set_title('All subjects', loc='left')
 
 # Add windows to TRF plot
-figure.text(0.83, 0.35, 'D', size=10)
+figure.text(0.85, 0.35, 'D', size=10)
 y0 = 5
 window_time = eelbrain.UTS(0.280, 0.010, 12)
 window = eelbrain.NDVar.zeros(window_time)

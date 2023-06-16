@@ -50,6 +50,7 @@ RC = {
     'axes.titlesize': FONT_SIZE,
     'xtick.labelsize': FONT_SIZE,
     'ytick.labelsize': FONT_SIZE,    
+    'legend.fontsize': FONT_SIZE,
 }
 pyplot.rcParams.update(RC)
 # -
@@ -89,6 +90,16 @@ data_det.head()
 
 p = eelbrain.plot.Barplot('det_mean', 'scale', match='subject', cells=SCALES, data=data_det, h=3, w=2, xtick_rotation=90)
 
+# ## Pairwise tests
+
+eelbrain.test.TTestRelated('det_mean', 'scale', 'power', 'linear', match='subject', data=data_det)
+
+eelbrain.test.TTestRelated('det_mean', 'scale', 'log', 'power', match='subject', data=data_det)
+
+eelbrain.test.TTestRelated('det_mean', 'scale', 'linear+log', 'log', match='subject', data=data_det)
+
+# ## STRFs
+
 for scale, data in datasets.items():
     p = eelbrain.plot.Array([f"{trf}.mean('sensor')" for trf in data.info['trfs']], ncol=1, data=data, title=scale, axh=2, axw=3)
 
@@ -99,25 +110,23 @@ gammatone_lin = eelbrain.load.unpickle(DATA_ROOT / 'stimuli' / f'{STIMULUS}-gamm
 gammatone_pow = gammatone_lin ** 0.6
 gammatone_log = (1 + gammatone_lin).log()
 
-numpy.log(1)
-
 # +
 # Figure layout
 figure = pyplot.figure(figsize=(7.5, 4))
 hs = [1, 1, 1, 1, 1, 1]
 ws = [1, 1, 3, 1]
-gridspec = figure.add_gridspec(len(hs), len(ws), top=0.92, bottom=0.15, left=0.11, right=0.95, hspace=2., wspace=0.1, height_ratios=hs, width_ratios=ws)
+gridspec = figure.add_gridspec(len(hs), len(ws), top=0.92, bottom=0.15, left=0.11, right=0.99, hspace=2., wspace=0.1, height_ratios=hs, width_ratios=ws)
 # Plotting parameters for reusing
 topo_args = dict(clip='circle')
 array_args = dict(xlim=(-0.050, 1.0), axtitle=False)
 topo_array_args = dict(topo_labels='below', **array_args, **topo_args)
-det_args = dict(**topo_args, vmax=0.01, cmap='lux-a')
+det_args = dict(**topo_args, vmax=1, cmap='lux-a')
 cbar_args = dict(h=.5)
 t_envelope = [0.050, 0.100, 0.150, 0.400]
 t_onset = [0.060, 0.110, 0.180]
 
-# Log scale
-figure.text(0.01, 0.96, 'A', size=10)
+# Log scale graph
+figure.text(0.01, 0.96, 'A) Nonlinear scales', size=10)
 ax = figure.add_subplot(gridspec[0:2, 0])
 x = numpy.linspace(0, 100)
 ax.plot(x, numpy.log(x+1), label='log')
@@ -126,7 +135,6 @@ ax.set_ylabel('Brain response')
 ax.set_xlabel('Acoustic power')
 ax.set_xticks(())
 ax.set_yticks(())
-ax.set_title('Nonlinear scales')
 pyplot.legend(loc=(.5,.05))
         
 # Spectrograms
@@ -143,18 +151,18 @@ for i, sgram, scale in zip(range(3), sgrams, SCALES):
 for i, scale in enumerate(SCALES):
     ax = figure.add_subplot(gridspec[i*2:(i+1)*2, 3])
     data = datasets[scale]
-    p = eelbrain.plot.Topomap('det', data=data, axes=ax, **det_args)
+    p = eelbrain.plot.Topomap('det * 100', data=data, axes=ax, **det_args)
     if i == 2:
-        p.plot_colorbar(below=ax)
+        p.plot_colorbar(below=ax, ticks=3, label='% explained')
 
-# Predictive power comparison
-figure.text(0.01, 0.55, 'C', size=10)
+# Predictive power barplot
+figure.text(0.01, 0.55, 'C) Predictive power', size=10)
 ax = figure.add_subplot(gridspec[3:, 0])
-p = eelbrain.plot.Barplot('det_mean', 'scale', match='subject', data=data_det, cells=MODELS, axes=ax, test=False, ylabel='Predictive power', xlabel='Scale', frame=False, xtick_rotation=20, top=.0022)
+p = eelbrain.plot.Barplot('det_mean * 100', 'scale', match='subject', data=data_det, cells=MODELS, axes=ax, test=False, ylabel='% explained', xlabel='Scale', frame=False, xtick_rotation=20, top=.22)
 res = eelbrain.test.TTestRelated('det_mean', 'scale', 'power', 'linear', 'subject', data=data_det)
-p.mark_pair('linear', 'power', .002, mark=res.p)
+p.mark_pair('linear', 'power', .2, mark=res.p)
 res = eelbrain.test.TTestRelated('det_mean', 'scale', 'log', 'power', 'subject', data=data_det)
-p.mark_pair('power', 'log', .0023, mark=res.p)
+p.mark_pair('power', 'log', .23, mark=res.p)
 
 figure.savefig(DST / 'Auditory-Scale.pdf')
 figure.savefig(DST / 'Auditory-Scale.png')

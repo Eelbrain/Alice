@@ -6,14 +6,14 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.11.3
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
 
-# + tags=[]
+# +
 from pathlib import Path
 
 import eelbrain
@@ -49,6 +49,7 @@ RC = {
     'axes.titlesize': FONT_SIZE,
     'xtick.labelsize': FONT_SIZE,
     'ytick.labelsize': FONT_SIZE,    
+    'legend.fontsize': FONT_SIZE,
 }
 pyplot.rcParams.update(RC)
 # -
@@ -145,7 +146,8 @@ strf_spectrogram = data_acoustic['gammatone'].mean(sensor=auditory_sensors).smoo
 strf_onset_spectrogram = data_acoustic['gammatone_on'].mean(sensor=auditory_sensors)
 p = eelbrain.plot.Array([strf_spectrogram, strf_onset_spectrogram], ncol=2, xlim=(-0.050, 0.950))
 
-# # Generate figure
+# # Figure
+# ## Load data
 
 # Load stimuli
 gammatone = eelbrain.load.unpickle(DATA_ROOT / 'stimuli' / '1-gammatone.pickle').sub(time=(0, 3.001))
@@ -171,10 +173,18 @@ test_acoustic = eelbrain.testnd.TTestOneSample('det', sub="model == 'acoustic'",
 test_onset_envelope = eelbrain.testnd.TTestRelated('det', 'model', 'envelope+onset', 'envelope', 'subject', data=model_data, tail=1, pmin=0.05)
 test_acoustic_onset = eelbrain.testnd.TTestRelated('det', 'model', 'acoustic', 'envelope+onset', 'subject', data=model_data, tail=1, pmin=0.05)
 
+# Max predictive power per model (reported in paper)
+for model in models:
+    m_data = model_data.sub(f"model == '{model}'")
+    det_max = m_data['det'].mean('case').max('sensor')
+    print(f"{model}: {det_max:.2f}")
+
+# ## Generate figure
+
 # +
 # Initialize figure
 figure = pyplot.figure(figsize=(7.5, 8))
-gridspec = figure.add_gridspec(10, 10, top=0.97, bottom=0.05, left=0.05, right=0.95, hspace=0.3, height_ratios=[2,2,2,2,2,2,2,2,1,2], width_ratios=[2,2,2,2,2,1,2,2,2,2])
+gridspec = figure.add_gridspec(10, 10, top=0.95, bottom=0.05, left=0.05, right=0.95, hspace=0.3, height_ratios=[2,2,2,2,2,2,2,2,1,2], width_ratios=[2,2,2,2,2,1,2,2,2,2])
 topo_args = dict(clip='circle')
 array_args = dict(xlim=(-0.050, 1.0), axtitle=False)
 topo_array_args = dict(topo_labels='below', **array_args, **topo_args)
@@ -195,8 +205,8 @@ eelbrain.plot.Array([gammatone, gammatone_on], axes=axes, axtitle=False, xtickla
 for ax, y in zip(axes, (gammatone, gammatone_on)):
     y = y.sub(time=(1, None)).sum('frequency')
     y -= y.min()
-    y *= 150 / y.max()
-    y += 50
+    y *= 90 / y.max()
+    y += 20
     ax.plot(y.time.times, y.x)
 
 # B) Envelope
@@ -205,7 +215,7 @@ for ax, y in zip(axes, (gammatone, gammatone_on)):
 axes = figure.add_subplot(gridspec[1,4])
 p = eelbrain.plot.Topomap(test_envelope.masked_difference(), axes=axes, **det_args)
 axes.set_title("Envelope\npredictive power", loc='left')
-p.plot_colorbar(below=axes, **cbar_args, ticks=3, label='%')
+p.plot_colorbar(below=axes, offset=-0.1, **cbar_args, clipmin=0, ticks=5, label='%')
 # TRF
 axes = [
     figure.add_subplot(gridspec[0,7:10]), 
@@ -217,7 +227,7 @@ axes = [
 p = eelbrain.plot.TopoArray(trf_envelope, t=t_envelope, axes=axes, **topo_array_args)
 vmin, vmax = p.get_vlim()
 axes[0].set_title('Envelope TRF', loc='left')
-p.plot_colorbar(below=axes[1], **cbar_args, ticks=0, label='TRF (a.u.)')
+p.plot_colorbar(below=axes[1], offset=-0.1, **cbar_args, ticks=0, label='TRF (a.u.)')
 
 # C) Envelope + onsets
 # --------------------
@@ -291,6 +301,6 @@ figure.text(0.01, y_b + 0.04, 'C) Envelope + onsets', size=10)
 figure.text(0.01, y_c + 0.04, 'D) Spectrogram + onset spectrogram', size=10)
 figure.text(0.01, y_d + 0.04, 'E) Spectrogram + onset spectrogram: spectro-temporal response functions (STRFs)', size=10)
 
-# eelbrain.plot.figure_outline()
 figure.savefig(DST / 'Auditory-TRFs.pdf')
 figure.savefig(DST / 'Auditory-TRFs.png')
+eelbrain.plot.figure_outline()
