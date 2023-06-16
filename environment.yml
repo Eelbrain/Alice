@@ -4,7 +4,7 @@ name: eelbrain
 channels:
 - conda-forge
 dependencies:
-- eelbrain >= 0.40
+- eelbrain >= 0.39.1
 - pip
 - ipython
 - jupyter
@@ -13,4 +13,4 @@ dependencies:
 - seaborn
 - pip:
   - https://github.com/christianbrodbeck/gammatone/archive/fmax.zip
-  - git+https://github.com/Hugo-W/pyEEG.git
+  - https://github.com/Hugo-W/pyEEG/archive/refs/heads/master.zip
