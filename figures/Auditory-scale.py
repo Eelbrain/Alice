@@ -120,7 +120,7 @@ gridspec = figure.add_gridspec(len(hs), len(ws), top=0.92, bottom=0.15, left=0.1
 topo_args = dict(clip='circle')
 array_args = dict(xlim=(-0.050, 1.0), axtitle=False)
 topo_array_args = dict(topo_labels='below', **array_args, **topo_args)
-det_args = dict(**topo_args, vmax=1, cmap='lux-a')
+det_args = dict(**topo_args, vmax=1, cmap='lux-gray')
 cbar_args = dict(h=.5)
 t_envelope = [0.050, 0.100, 0.150, 0.400]
 t_onset = [0.060, 0.110, 0.180]
@@ -153,7 +153,7 @@ for i, scale in enumerate(SCALES):
     data = datasets[scale]
     p = eelbrain.plot.Topomap('det * 100', data=data, axes=ax, **det_args)
     if i == 2:
-        p.plot_colorbar(below=ax, ticks=3, label='% explained')
+        p.plot_colorbar(below=ax, clipmin=0, ticks=5, label='% explained')
 
 # Predictive power barplot
 figure.text(0.01, 0.55, 'C) Predictive power', size=10)

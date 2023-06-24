@@ -85,7 +85,7 @@ data_trfs = eelbrain.Dataset.from_caselist(column_names, cases, random='subject'
 figure = pyplot.figure(figsize=(7.5, 5))
 gridspec = figure.add_gridspec(9, 9, left=0.01, right=0.95, hspace=1.5)
 topo_args = dict(clip='circle')
-det_args = dict(**topo_args, vmax=0.5, cmap='lux')
+det_args = dict(**topo_args, vmax=0.5, cmap='lux-gray')
 trf_vmax = 0.007
 reference_labels = {
     'mastoids': 'mastoids', 
@@ -126,7 +126,7 @@ for reference_idx, reference in enumerate(reference_labels):
     plot_topo = eelbrain.plot.Topomap([trf.sub(time=time) for time in times], axes=axes, axtitle=time_labels, ncol=len(times), vmax=trf_vmax, **topo_args)
     plot_topo.plot_colorbar(right_of=axes[-1], label='', label_rotation=90, ticks={trf_vmax:'+', -trf_vmax:'-', 0:'0'})
 
-figure.text(0.01, 0.96, 'A) Prediction accuracy', size=10)
+figure.text(0.01, 0.96, 'A) Predictive power', size=10)
 figure.text(0.30, 0.96, 'B) Envelope TRF', size=10)
 
 figure.savefig(DST / 'Reference-strategy.pdf')

@@ -164,20 +164,15 @@ for model in models:
         trf = eelbrain.load.unpickle(TRF_DIR / subject / f'{subject} {model}.pickle')
         rows.append([subject, model, trf.proportion_explained])
 model_data = eelbrain.Dataset.from_caselist(['subject', 'model', 'det'], rows)
-# For more interpretable numbers, express proportion explained in terms of the maximum explained variability by the full model
-index = model_data['model'] == 'acoustic'
-model_data['det'] *= 100 / model_data[index, 'det'].mean('case').max('sensor')
-# Redo tests with adjusted predictive power 
-test_envelope = eelbrain.testnd.TTestOneSample('det', sub="model == 'envelope'", data=model_data, tail=1, pmin=0.05)
-test_acoustic = eelbrain.testnd.TTestOneSample('det', sub="model == 'acoustic'", data=model_data, tail=1, pmin=0.05)
-test_onset_envelope = eelbrain.testnd.TTestRelated('det', 'model', 'envelope+onset', 'envelope', 'subject', data=model_data, tail=1, pmin=0.05)
-test_acoustic_onset = eelbrain.testnd.TTestRelated('det', 'model', 'acoustic', 'envelope+onset', 'subject', data=model_data, tail=1, pmin=0.05)
 
 # Max predictive power per model (reported in paper)
+table = eelbrain.fmtxt.Table('ll')
+table.cells('Model', 'Max % explained')
 for model in models:
     m_data = model_data.sub(f"model == '{model}'")
     det_max = m_data['det'].mean('case').max('sensor')
-    print(f"{model}: {det_max:.2f}")
+    table.cells(model, f'{det_max:.2%}')
+table
 
 # ## Generate figure
 
@@ -188,7 +183,8 @@ gridspec = figure.add_gridspec(10, 10, top=0.95, bottom=0.05, left=0.05, right=0
 topo_args = dict(clip='circle')
 array_args = dict(xlim=(-0.050, 1.0), axtitle=False)
 topo_array_args = dict(topo_labels='below', **array_args, **topo_args)
-det_args = dict(**topo_args, vmax=100, cmap='lux-a')
+det_args = dict(**topo_args, vmax=0.01, cmap='lux-gray')
+det_delta_args = dict(**topo_args, vmax=0.001, cmap='lux-gray')
 cbar_args = dict(h=.5)
 t_envelope = [0.050, 0.100, 0.150, 0.400]
 t_onset = [0.060, 0.110, 0.180]
@@ -215,7 +211,7 @@ for ax, y in zip(axes, (gammatone, gammatone_on)):
 axes = figure.add_subplot(gridspec[1,4])
 p = eelbrain.plot.Topomap(test_envelope.masked_difference(), axes=axes, **det_args)
 axes.set_title("Envelope\npredictive power", loc='left')
-p.plot_colorbar(below=axes, offset=-0.1, **cbar_args, clipmin=0, ticks=5, label='%')
+p.plot_colorbar(below=axes, offset=0.1, **cbar_args, clipmin=0, ticks=5, label='% explained', unit=1e-2)
 # TRF
 axes = [
     figure.add_subplot(gridspec[0,7:10]), 
@@ -233,8 +229,10 @@ p.plot_colorbar(below=axes[1], offset=-0.1, **cbar_args, ticks=0, label='TRF (a.
 # --------------------
 # Predictive power tests
 axes = figure.add_subplot(gridspec[4,0])
-p = eelbrain.plot.Topomap(test_onset_envelope.masked_difference(), axes=axes, **det_args)
+p = eelbrain.plot.Topomap(test_onset_envelope.masked_difference(), axes=axes, **det_delta_args)
 axes.set_title("Predictive Power\n> Envelope", loc='left')
+p.plot_colorbar(below=axes, offset=0.1, **cbar_args, clipmin=0, ticks=5, label='∆ % explained', unit=1e-2)
+
 # TRFs
 axes = [
     figure.add_subplot(gridspec[3,2:5]), 
@@ -259,8 +257,9 @@ y_b = axes[0].get_position().y1
 # ---------------
 # Predictive power tests
 axes = figure.add_subplot(gridspec[7, 0])
-p = eelbrain.plot.Topomap(test_acoustic_onset.masked_difference(), axes=axes, **det_args)
-axes.set_title("Predictive Power\n> Envelope + Onsets", loc='left')
+p = eelbrain.plot.Topomap(test_acoustic_onset.masked_difference(), axes=axes, **det_delta_args)
+axes.set_title("Predictive Power\n> Envelope + Onsets\n(∆ % explained)", loc='left')
+
 # TRFs
 axes = [
     figure.add_subplot(gridspec[6,2:5]), 
@@ -284,7 +283,7 @@ y_c = axes[0].get_position().y1
 axes = figure.add_subplot(gridspec[9,0])
 p = eelbrain.plot.Topomap(test_acoustic.difference, axes=axes, **det_args)
 p.mark_sensors(auditory_sensors, s=2, c='green')
-axes.set_title("Channels for STRF", loc='left')
+axes.set_title("Channels for\nSTRF", loc='left')
 # STRFs
 axes = [
     figure.add_subplot(gridspec[9,2:5]),

@@ -4,7 +4,7 @@ name: eelbrain
 channels:
 - conda-forge
 dependencies:
-- eelbrain >= 0.39.1
+- eelbrain >= 0.39.2
 - pip
 - ipython
 - jupyter
