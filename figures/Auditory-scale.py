@@ -37,7 +37,7 @@ DST.mkdir(exist_ok=True)
 FONT = 'Arial'
 FONT_SIZE = 8
 RC = {
-    'figure.dpi': 150,
+    'figure.dpi': 100,
     'savefig.dpi': 300,
     'savefig.transparent': True,
     # Font
@@ -59,10 +59,10 @@ pyplot.rcParams.update(RC)
 
 # +
 # load cross-validated predictive power and TRFs of the different spectrogram models
-SCALES = ['linear', 'power', 'log']
+SCALES = ['linear', 'power-law', 'log']
 MODELS = {
     'linear': 'gammatone-lin',
-    'power': 'gammatone-pow',
+    'power-law': 'gammatone-pow',
     'log': 'gammatone',
     'linear+log': 'gammatone-lin+log',
 }
@@ -88,13 +88,13 @@ data_det.head()
 
 # # Model comparisons
 
-p = eelbrain.plot.Barplot('det_mean', 'scale', match='subject', cells=SCALES, data=data_det, h=3, w=2, xtick_rotation=90)
+p = eelbrain.plot.Barplot('det_mean', 'scale', match='subject', cells=SCALES, data=data_det, h=3, w=2, xtick_rotation=-20)
 
 # ## Pairwise tests
 
-eelbrain.test.TTestRelated('det_mean', 'scale', 'power', 'linear', match='subject', data=data_det)
+eelbrain.test.TTestRelated('det_mean', 'scale', 'power-law', 'linear', match='subject', data=data_det)
 
-eelbrain.test.TTestRelated('det_mean', 'scale', 'log', 'power', match='subject', data=data_det)
+eelbrain.test.TTestRelated('det_mean', 'scale', 'log', 'power-law', match='subject', data=data_det)
 
 eelbrain.test.TTestRelated('det_mean', 'scale', 'linear+log', 'log', match='subject', data=data_det)
 
@@ -130,7 +130,7 @@ figure.text(0.01, 0.96, 'A) Nonlinear scales', size=10)
 ax = figure.add_subplot(gridspec[0:2, 0])
 x = numpy.linspace(0, 100)
 ax.plot(x, numpy.log(x+1), label='log')
-ax.plot(x, x**0.6/3, label='power')
+ax.plot(x, x**0.6/3, label='power-law')
 ax.set_ylabel('Brain response')
 ax.set_xlabel('Acoustic power')
 ax.set_xticks(())
@@ -158,11 +158,11 @@ for i, scale in enumerate(SCALES):
 # Predictive power barplot
 figure.text(0.01, 0.55, 'C) Predictive power', size=10)
 ax = figure.add_subplot(gridspec[3:, 0])
-p = eelbrain.plot.Barplot('det_mean * 100', 'scale', match='subject', data=data_det, cells=MODELS, axes=ax, test=False, ylabel='% explained', xlabel='Scale', frame=False, xtick_rotation=20, top=.22)
-res = eelbrain.test.TTestRelated('det_mean', 'scale', 'power', 'linear', 'subject', data=data_det)
-p.mark_pair('linear', 'power', .2, mark=res.p)
-res = eelbrain.test.TTestRelated('det_mean', 'scale', 'log', 'power', 'subject', data=data_det)
-p.mark_pair('power', 'log', .23, mark=res.p)
+p = eelbrain.plot.Barplot('det_mean * 100', 'scale', match='subject', data=data_det, cells=MODELS, axes=ax, test=False, ylabel='% explained', xlabel='Scale', frame=False, xtick_rotation=-30, top=.22)
+res = eelbrain.test.TTestRelated('det_mean', 'scale', 'power-law', 'linear', 'subject', data=data_det)
+p.mark_pair('linear', 'power-law', .2, mark=res.p)
+res = eelbrain.test.TTestRelated('det_mean', 'scale', 'log', 'power-law', 'subject', data=data_det)
+p.mark_pair('power-law', 'log', .23, mark=res.p)
 
 figure.savefig(DST / 'Auditory-Scale.pdf')
 figure.savefig(DST / 'Auditory-Scale.png')

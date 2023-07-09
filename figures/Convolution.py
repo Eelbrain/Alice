@@ -35,7 +35,7 @@ DST.mkdir(exist_ok=True)
 FONT = 'Arial'
 FONT_SIZE = 8
 RC = {
-    'figure.dpi': 150,
+    'figure.dpi': 100,
     'savefig.dpi': 300,
     'savefig.transparent': True,
     # Font

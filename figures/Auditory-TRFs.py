@@ -36,7 +36,7 @@ DST.mkdir(exist_ok=True)
 FONT = 'Arial'
 FONT_SIZE = 8
 RC = {
-    'figure.dpi': 150,
+    'figure.dpi': 100,
     'savefig.dpi': 300,
     'savefig.transparent': True,
     # Font
@@ -192,8 +192,8 @@ t_onset = [0.060, 0.110, 0.180]
 # A) Predictors
 # -------------
 axes = [
-    figure.add_subplot(gridspec[0,0:3]),
-    figure.add_subplot(gridspec[1,0:3]),
+    figure.add_subplot(gridspec[0, 0:3]),
+    figure.add_subplot(gridspec[1, 0:3]),
 ]
 eelbrain.plot.Array([gammatone, gammatone_on], axes=axes, axtitle=False, xticklabels=-1, yticklabels=False)
 # axes[0].set_ylabel('Gammatone\nSpectrogram', loc='bottom')
@@ -204,6 +204,8 @@ for ax, y in zip(axes, (gammatone, gammatone_on)):
     y *= 90 / y.max()
     y += 20
     ax.plot(y.time.times, y.x)
+    ax.set_yticks(())
+
 
 # B) Envelope
 # -----------
@@ -214,15 +216,16 @@ axes.set_title("Envelope\npredictive power", loc='left')
 p.plot_colorbar(below=axes, offset=0.1, **cbar_args, clipmin=0, ticks=5, label='% explained', unit=1e-2)
 # TRF
 axes = [
-    figure.add_subplot(gridspec[0,7:10]), 
-    figure.add_subplot(gridspec[1,6]),
-    figure.add_subplot(gridspec[1,7]),
-    figure.add_subplot(gridspec[1,8]), 
-    figure.add_subplot(gridspec[1,9]),
+    figure.add_subplot(gridspec[0, 7:10]), 
+    figure.add_subplot(gridspec[1, 6]),
+    figure.add_subplot(gridspec[1, 7]),
+    figure.add_subplot(gridspec[1, 8]), 
+    figure.add_subplot(gridspec[1, 9]),
 ]
 p = eelbrain.plot.TopoArray(trf_envelope, t=t_envelope, axes=axes, **topo_array_args)
 vmin, vmax = p.get_vlim()
 axes[0].set_title('Envelope TRF', loc='left')
+axes[0].set_yticks(range(0, 61, 15))
 p.plot_colorbar(below=axes[1], offset=-0.1, **cbar_args, ticks=0, label='TRF (a.u.)')
 
 # C) Envelope + onsets
@@ -231,26 +234,28 @@ p.plot_colorbar(below=axes[1], offset=-0.1, **cbar_args, ticks=0, label='TRF (a.
 axes = figure.add_subplot(gridspec[4,0])
 p = eelbrain.plot.Topomap(test_onset_envelope.masked_difference(), axes=axes, **det_delta_args)
 axes.set_title("Predictive Power\n> Envelope", loc='left')
-p.plot_colorbar(below=axes, offset=0.1, **cbar_args, clipmin=0, ticks=5, label='∆ % explained', unit=1e-2)
+p.plot_colorbar(right_of=axes, offset=0., **cbar_args, ticks=3, label='∆ % explained', unit=1e-2)
 
 # TRFs
 axes = [
-    figure.add_subplot(gridspec[3,2:5]), 
-    figure.add_subplot(gridspec[4,2]), 
-    figure.add_subplot(gridspec[4,3]),
-    figure.add_subplot(gridspec[4,4]),
+    figure.add_subplot(gridspec[3, 3:6]), 
+    figure.add_subplot(gridspec[4, 2]), 
+    figure.add_subplot(gridspec[4, 3]),
+    figure.add_subplot(gridspec[4, 4]),
 ]
 p = eelbrain.plot.TopoArray(trf_eo_onset, t=t_onset, axes=axes, vmin=vmin, vmax=vmax, **topo_array_args)
 axes[0].set_title('Onset TRF', loc='left')
+axes[0].set_yticks(range(0, 61, 15))
 axes = [
-    figure.add_subplot(gridspec[3,7:10]), 
-    figure.add_subplot(gridspec[4,6]), 
-    figure.add_subplot(gridspec[4,7]), 
-    figure.add_subplot(gridspec[4,8]),
-    figure.add_subplot(gridspec[4,9]), 
+    figure.add_subplot(gridspec[3, 7:10]), 
+    figure.add_subplot(gridspec[4, 6]), 
+    figure.add_subplot(gridspec[4, 7]), 
+    figure.add_subplot(gridspec[4, 8]),
+    figure.add_subplot(gridspec[4, 9]), 
 ]
-p = eelbrain.plot.TopoArray(trf_eo_envelope, t=t_envelope, axes=axes, **topo_array_args)
+p = eelbrain.plot.TopoArray(trf_eo_envelope, t=t_envelope, axes=axes, **topo_array_args, yticklabels=False, ylabel=False)
 axes[0].set_title('Envelope TRF', loc='left')
+axes[0].set_yticks(range(0, 61, 15))
 y_b = axes[0].get_position().y1
 
 # D) Spectrograms
@@ -258,38 +263,47 @@ y_b = axes[0].get_position().y1
 # Predictive power tests
 axes = figure.add_subplot(gridspec[7, 0])
 p = eelbrain.plot.Topomap(test_acoustic_onset.masked_difference(), axes=axes, **det_delta_args)
-axes.set_title("Predictive Power\n> Envelope + Onsets\n(∆ % explained)", loc='left')
+axes.set_title("Predictive Power\n> Envelope + Onsets", loc='left')
+p.plot_colorbar(right_of=axes, offset=0., **cbar_args, ticks=3, label='∆ % explained', unit=1e-2)
 
 # TRFs
 axes = [
-    figure.add_subplot(gridspec[6,2:5]), 
-    figure.add_subplot(gridspec[7,2]), 
-    figure.add_subplot(gridspec[7,3]),
-    figure.add_subplot(gridspec[7,4]),
+    figure.add_subplot(gridspec[6, 3:6]), 
+    figure.add_subplot(gridspec[7, 2]), 
+    figure.add_subplot(gridspec[7, 3]),
+    figure.add_subplot(gridspec[7, 4]),
 ]
 p = eelbrain.plot.TopoArray(trf_onset_spectrogram, t=t_onset, axes=axes, **topo_array_args)
 axes[0].set_title('Onset STRF (sum across frequency)', loc='left')
+axes[0].set_yticks(range(0, 61, 15))
 axes = [
-    figure.add_subplot(gridspec[6,7:10]),
-    figure.add_subplot(gridspec[7,6]), 
-    figure.add_subplot(gridspec[7,7]),
-    figure.add_subplot(gridspec[7,8]), 
-    figure.add_subplot(gridspec[7,9]), 
+    figure.add_subplot(gridspec[6, 7:10]),
+    figure.add_subplot(gridspec[7, 6]), 
+    figure.add_subplot(gridspec[7, 7]),
+    figure.add_subplot(gridspec[7, 8]), 
+    figure.add_subplot(gridspec[7, 9]), 
 ]
-p = eelbrain.plot.TopoArray(trf_spectrogram, t=t_envelope, axes=axes, **topo_array_args)
+p = eelbrain.plot.TopoArray(trf_spectrogram, t=t_envelope, axes=axes, **topo_array_args, yticklabels=False, ylabel=False)
 axes[0].set_title('Envelope STRF (sum across frequency)', loc='left')
+axes[0].set_yticks(range(0, 61, 15))
 y_c = axes[0].get_position().y1
-# E) Channel selection
+
+# E) STRFs
+# --------
+# Channel selection
 axes = figure.add_subplot(gridspec[9,0])
 p = eelbrain.plot.Topomap(test_acoustic.difference, axes=axes, **det_args)
 p.mark_sensors(auditory_sensors, s=2, c='green')
 axes.set_title("Channels for\nSTRF", loc='left')
+p.plot_colorbar(right_of=axes, offset=0., **cbar_args, clipmin=0, ticks=5, label='% explained', unit=1e-2)
 # STRFs
 axes = [
-    figure.add_subplot(gridspec[9,2:5]),
-    figure.add_subplot(gridspec[9,7:10]),
+    figure.add_subplot(gridspec[9, 3:6]),
+    figure.add_subplot(gridspec[9, 7:10]),
 ]
 eelbrain.plot.Array([strf_onset_spectrogram, strf_spectrogram], axes=axes, **array_args)
+for ax in axes:
+    ax.set_yticks(range(0, 8, 2))
 axes[0].set_title("Onset STRF", loc='left')
 axes[1].set_title("Spectrogram STRF", loc='left')
 y_d = axes[0].get_position().y1

@@ -70,7 +70,6 @@ model_data = eelbrain.Dataset.from_caselist(['subject', 'model', 'det'], rows)
 lexical_model_test = eelbrain.testnd.TTestRelated('det', 'model', 'words+lexical', 'words', match='subject', data=model_data, tail=1, pmin=0.05)
 
 p = eelbrain.plot.Topomap(lexical_model_test, ncol=3, title=lexical_model_test, axh=1, clip='circle')
-matplotlib.rcParams["figure.dpi"] = 100  # workaround for matplotlib bug that changes DPI after creating the first plot
 
 # ## How do the responses differ?
 # Compare the TRFs corresponding to content and function words.
