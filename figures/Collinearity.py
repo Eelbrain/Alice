@@ -99,9 +99,9 @@ gammatone_response = [eelbrain.convolve(strf, x) for x in gammatone]
 
 # Add pink noise to the auditory responses to simulate raw EEG data
 eeg = []
-for response in gammatone_response:
+for ii, response in enumerate(gammatone_response):
     response -= response.mean('time')
-    noise = eelbrain.powerlaw_noise(response.dims, 1)
+    noise = eelbrain.powerlaw_noise(response.dims, 1, seed=134+ii)
     # SNR ~ -5dB
     eeg.append(response + 1.7783 * noise * response.std() / noise.std())
 
@@ -127,18 +127,18 @@ best_stopping = np.where(increments < 0)[0][0] - 1
 boosting_trf = boosting_trfs[best_stopping]
 
 # # Learn TRFs via Ridge regression using pyEEG
-
 cache_path = SIMULATION_DIR / 'ridge.pickle'
 if cache_path.exists():
     ridge_trf = eelbrain.load.unpickle(cache_path)
 else:
     x = predictors_concatenated.get_data(('time', 'frequency'))
     y = eeg_concatenated.get_data('time')[:, None]
-    reg_param = [0.02, 0.05, 0.1, 0.2, 0.5, 1]  # Ridge parameters
+    reg_param = [1e5, 2e5, 5e5, 1e6, 2e6, 5e6, 1e7]  # Ridge parameters
     ridge_trf = TRFEstimator(tmin=-0.1, tmax=1., srate=1/eeg[0].time.tstep, alpha=reg_param)
     scores, alpha = ridge_trf.xfit(x, y, n_splits=10)
     params = ridge_trf.get_params()
     tt = eelbrain.UTS.from_range(params['tmin'], params['tmax'], 1 / params['srate'])
+    ridge_trf.best_alpha = alpha
     ridge_trf.h_scaled = eelbrain.NDVar(ridge_trf.coef_[:, :, 0].T, (frequency, tt), name='gammatone')
     eelbrain.save.pickle(ridge_trf, cache_path)
 
