@@ -99,7 +99,7 @@ for reference_idx, reference in enumerate(reference_labels):
     p = eelbrain.plot.Topomap('prediction_accuracy', data=data_trfs[data_trfs['reference']==reference], axes=axes, **det_args)
     label = reference_labels[reference]
     axes.set_title(f"Referenced to {label}", loc='left', size=10)
-p.plot_colorbar(below=axes, label="% explained", clipmin=0, ticks=5, h=2)
+p.plot_colorbar(below=axes, label="% variability explained", clipmin=0, ticks=5, h=2)
 
 # B) TRFs 
 times = [0.04, 0.14, 0.24]

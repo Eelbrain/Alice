@@ -140,7 +140,7 @@ figure = pyplot.figure(figsize=(7.5, 5))
 gridspec = figure.add_gridspec(4, 9, height_ratios=[2,2,2,2], left=0.05, right=0.95, hspace=0.3, bottom=0.09)
 topo_args = dict(clip='circle')
 det_args = dict(**topo_args, vmax=0.001, cmap='lux-gray')
-cbar_args = dict(label='∆ % explained', unit=1e-2, ticks=3, h=.5)
+cbar_args = dict(label='∆ % variability\nexplained', unit=1e-2, ticks=3, h=.5)
 
 # Add predictive power tests
 axes = figure.add_subplot(gridspec[0,0])

@@ -153,12 +153,12 @@ for i, scale in enumerate(SCALES):
     data = datasets[scale]
     p = eelbrain.plot.Topomap('det * 100', data=data, axes=ax, **det_args)
     if i == 2:
-        p.plot_colorbar(below=ax, clipmin=0, ticks=5, label='% explained')
+        p.plot_colorbar(below=ax, clipmin=0, ticks=5, label='% variability explained')
 
 # Predictive power barplot
 figure.text(0.01, 0.55, 'C) Predictive power', size=10)
 ax = figure.add_subplot(gridspec[3:, 0])
-p = eelbrain.plot.Barplot('det_mean * 100', 'scale', match='subject', data=data_det, cells=MODELS, axes=ax, test=False, ylabel='% explained', xlabel='Scale', frame=False, xtick_rotation=-30, top=.22)
+p = eelbrain.plot.Barplot('det_mean * 100', 'scale', match='subject', data=data_det, cells=MODELS, axes=ax, test=False, ylabel='% variability explained', xlabel='Scale', frame=False, xtick_rotation=-30, top=.22)
 res = eelbrain.test.TTestRelated('det_mean', 'scale', 'power-law', 'linear', 'subject', data=data_det)
 p.mark_pair('linear', 'power-law', .2, mark=res.p)
 res = eelbrain.test.TTestRelated('det_mean', 'scale', 'log', 'power-law', 'subject', data=data_det)

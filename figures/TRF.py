@@ -176,7 +176,7 @@ decorate(ax)
 # Predictive power
 ax_power = ax = pyplot.subplot2grid((4, 9), (1, 7))
 eelbrain.plot.Topomap(proportion_explained_12, axes=ax, clip='circle', cmap='lux-gray', mark=[SENSOR], mcolor='#009E73', msize=1)
-ax.set_title('Predictive power\n(% explained)')
+ax.set_title('Predictive power\n(% variability explained)')
 
 pyplot.tight_layout()
 

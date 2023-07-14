@@ -132,7 +132,7 @@ pos.y1 -= 0.1
 ax.set_position(pos)
 ax.yaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(decimals=3, symbol=''))
 ax.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(0.005))
-p = eelbrain.plot.Barplot('det_mean', 'basis_ms', match='subject', data=data, axes=ax, corr=False, ylabel='% explained', xlabel='Basis [ms]', frame=False, bottom=.195, top=0.205, colors=COLORS)
+p = eelbrain.plot.Barplot('det_mean', 'basis_ms', match='subject', data=data, axes=ax, corr=False, ylabel='% variability explained', xlabel='Basis [ms]', frame=False, bottom=.195, top=0.205, colors=COLORS)
 
 # Sensor map
 figure.text(0.31, 0.96, 'B', size=10)

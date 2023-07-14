@@ -213,7 +213,7 @@ for ax, y in zip(axes, (gammatone, gammatone_on)):
 axes = figure.add_subplot(gridspec[1,4])
 p = eelbrain.plot.Topomap(test_envelope.masked_difference(), axes=axes, **det_args)
 axes.set_title("Envelope\npredictive power", loc='left')
-p.plot_colorbar(below=axes, offset=0.1, **cbar_args, clipmin=0, ticks=5, label='% explained', unit=1e-2)
+p.plot_colorbar(below=axes, offset=0.1, **cbar_args, clipmin=0, ticks=5, label='% variability\nexplained', unit=1e-2)
 # TRF
 axes = [
     figure.add_subplot(gridspec[0, 7:10]), 
@@ -234,7 +234,7 @@ p.plot_colorbar(below=axes[1], offset=-0.1, **cbar_args, ticks=0, label='TRF (a.
 axes = figure.add_subplot(gridspec[4,0])
 p = eelbrain.plot.Topomap(test_onset_envelope.masked_difference(), axes=axes, **det_delta_args)
 axes.set_title("Predictive Power\n> Envelope", loc='left')
-p.plot_colorbar(right_of=axes, offset=0., **cbar_args, ticks=3, label='∆ % explained', unit=1e-2)
+p.plot_colorbar(right_of=axes, offset=0., **cbar_args, ticks=3, label='∆ % variability\nexplained', unit=1e-2)
 
 # TRFs
 axes = [
@@ -264,7 +264,7 @@ y_b = axes[0].get_position().y1
 axes = figure.add_subplot(gridspec[7, 0])
 p = eelbrain.plot.Topomap(test_acoustic_onset.masked_difference(), axes=axes, **det_delta_args)
 axes.set_title("Predictive Power\n> Envelope + Onsets", loc='left')
-p.plot_colorbar(right_of=axes, offset=0., **cbar_args, ticks=3, label='∆ % explained', unit=1e-2)
+p.plot_colorbar(right_of=axes, offset=0., **cbar_args, ticks=3, label='∆ % variability\nexplained', unit=1e-2)
 
 # TRFs
 axes = [
@@ -295,7 +295,7 @@ axes = figure.add_subplot(gridspec[9,0])
 p = eelbrain.plot.Topomap(test_acoustic.difference, axes=axes, **det_args)
 p.mark_sensors(auditory_sensors, s=2, c='green')
 axes.set_title("Channels for\nSTRF", loc='left')
-p.plot_colorbar(right_of=axes, offset=0., **cbar_args, clipmin=0, ticks=5, label='% explained', unit=1e-2)
+p.plot_colorbar(right_of=axes, offset=0., **cbar_args, clipmin=0, ticks=5, label='% variability\nexplained', unit=1e-2)
 # STRFs
 axes = [
     figure.add_subplot(gridspec[9, 3:6]),
