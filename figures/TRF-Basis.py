@@ -124,8 +124,12 @@ t_envelope = [0.050, 0.100, 0.150, 0.400]
 t_onset = [0.060, 0.110, 0.180]
 
 # Predictive power comparison
-figure.text(0.01, 0.76, 'A) Predictive power', size=10)
-ax = figure.add_subplot(gridspec[1:, 0])
+figure.text(0.01, 0.96, 'A) Predictive power', size=10)
+ax = figure.add_subplot(gridspec[:2, 0])
+pos = ax.get_position()
+pos.y0 -= 0.1
+pos.y1 -= 0.1
+ax.set_position(pos)
 ax.yaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(decimals=3, symbol=''))
 ax.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(0.005))
 p = eelbrain.plot.Barplot('det_mean', 'basis_ms', match='subject', data=data, axes=ax, corr=False, ylabel='% explained', xlabel='Basis [ms]', frame=False, bottom=.195, top=0.205, colors=COLORS)
