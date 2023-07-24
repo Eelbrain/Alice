@@ -48,7 +48,7 @@ This data has been derived from the [original dataset](https://deepblue.lib.umic
 
 In order to create predictors used in the analysis (and for some plots in the figures), execute the scripts in the `predictors` directory (see [Subdirectories](#subdirectories) below).
 
-All TRFs used in the different figures can be computed and saved using the scripts in the `analysis` directory. However, this may require substantial computing time. To get started faster, the TRFs can also be downloaded from [here](https://www.dropbox.com/s/0mkgmii47iiq4fw/17-11-2022-TR-eLife-85012%20-%20TRFs.zip?dl=0). Just move the downloaded `TRFs` folder into the `~/Data/Alice` directory, i.e., as `~/Data/Alice/TRFs`.
+All TRFs used in the different figures can be computed and saved using the scripts in the `analysis` directory. However, this may require substantial computing time. To get started faster, the TRFs can also be downloaded from the data repository ([TRFs.zip](https://drum.lib.umd.edu/bitstreams/c46d0bfe-3ca9-496d-b248-8f39d6772b61/download)). Just move the downloaded `TRFs` folder into the `~/Data/Alice` directory, i.e., as `~/Data/Alice/TRFs`.
 
 
 ## Notebooks
