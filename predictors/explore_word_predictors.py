@@ -49,9 +49,9 @@ data = word_table_long.as_dataframe()
 _ = seaborn.displot(data=data, x='value', hue='variable', kind='kde', clip=(0, None), palette=colors)
 
 # pairwise scatter-plots
-eelbrain.report.scatter_table(VARIABLES, ds=word_table)
+eelbrain.report.scatter_table(VARIABLES, data=word_table)
 
-eelbrain.test.pairwise_correlations(VARIABLES, ds=word_table)
+eelbrain.test.pairwise_correlations(VARIABLES, data=word_table)
 
 # # Generate predictors
 # Generate a table that can serve to easily generate predictor time series. Here only one stimulus is used. For actually generating the predictors, run `make_word_predictors.py`.
@@ -59,16 +59,16 @@ eelbrain.test.pairwise_correlations(VARIABLES, ds=word_table)
 # +
 segment_table = word_table.sub(f"Segment == 1")
 # Initialize a Dataset to contain the predictors
-ds = eelbrain.Dataset(
+data = eelbrain.Dataset(
     {'time': segment_table['onset']}, # column with time-stamps
     info={'tstop': segment_table[-1, 'offset']},  # store stimulus end time for generating time-continuous predictor 
 )
 # add columns for predictor variables
 for key in VARIABLES:
-    ds[key] = segment_table[key]
+    data[key] = segment_table[key]
 # add masks for lexical and non-lexical words
-ds['lexical'] = segment_table['IsLexical'] == True
-ds['nlexical'] = segment_table['IsLexical'] == False            
+data['lexical'] = segment_table['IsLexical'] == True
+data['nlexical'] = segment_table['IsLexical'] == False
 
 # preview the result
-ds.head(10)
+data.head(10)

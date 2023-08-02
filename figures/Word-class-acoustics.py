@@ -6,9 +6,9 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.11.3
+#       jupytext_version: 1.14.5
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
@@ -17,6 +17,7 @@
 from pathlib import Path
 
 import eelbrain
+import matplotlib
 from matplotlib import pyplot
 import re
 
@@ -36,17 +37,22 @@ DST.mkdir(exist_ok=True)
 FONT = 'Arial'
 FONT_SIZE = 8
 RC = {
-    'figure.dpi': 150,
+    'figure.dpi': 100,
     'savefig.dpi': 300,
     'savefig.transparent': True,
     # Font
     'font.family': 'sans-serif',
     'font.sans-serif': FONT,
     'font.size': FONT_SIZE,
+    'figure.labelsize': FONT_SIZE,
+    'figure.titlesize': FONT_SIZE,
     'axes.labelsize': FONT_SIZE,
     'axes.titlesize': FONT_SIZE,
+    'xtick.labelsize': FONT_SIZE,
+    'ytick.labelsize': FONT_SIZE,    
+    'legend.fontsize': FONT_SIZE,
 }
-pyplot.rcParams.update(RC)
+matplotlib.rcParams.update(RC)
 # -
 
 # # Do brain responses differ between word class?
@@ -60,12 +66,10 @@ for model in models:
         trf = eelbrain.load.unpickle(TRF_DIR / subject / f'{subject} {model}.pickle')
         rows.append([subject, model, trf.proportion_explained])
 model_data = eelbrain.Dataset.from_caselist(['subject', 'model', 'det'], rows)
-# For more interpretable numbers, express proportion explained in terms of the maximum explained variability of the most complete model
-index = model_data['model'] == 'acoustic+words+lexical'
-model_data['det'] *= 100 / model_data[index, 'det'].mean('case').max('sensor')
 
-lexical_model_test = eelbrain.testnd.TTestRelated('det', 'model', 'words+lexical', 'words', match='subject', ds=model_data, tail=1, pmin=0.05)
-p = eelbrain.plot.Topomap(lexical_model_test, ncol=3, title=lexical_model_test, axh=2, clip='circle')
+lexical_model_test = eelbrain.testnd.TTestRelated('det', 'model', 'words+lexical', 'words', match='subject', data=model_data, tail=1, pmin=0.05)
+
+p = eelbrain.plot.Topomap(lexical_model_test, ncol=3, title=lexical_model_test, axh=1, clip='circle')
 
 # ## How do the responses differ?
 # Compare the TRFs corresponding to content and function words.
@@ -83,45 +87,49 @@ trfs = eelbrain.Dataset.from_caselist(['subject', 'model', *trf.x], rows)
 # Each word has an impulse of the general word predictor, as well as one form the word-class specific predictor
 # Accordingly, each word's response consists of the general word TRF and the word-class specific TRF
 # To reconstruct the responses to the two kinds of words, we thus want to add the general word TRF and the word-class specific TRF:
-word_difference = eelbrain.testnd.TTestRelated('non_lexical + word', 'lexical + word', ds=trfs, pmin=0.05)
+word_difference = eelbrain.testnd.TTestRelated('non_lexical + word', 'lexical + word', data=trfs, pmin=0.05)
 
-p = eelbrain.plot.TopoArray(word_difference, t=[0.100, 0.220, 0.400], clip='circle')
+p = eelbrain.plot.TopoArray(word_difference, t=[0.100, 0.220, 0.400], clip='circle', h=2, topo_labels='below')
 
 # ## When controlling for auditory responses?
 # Do the same test, but include predictors controlling for responses to acoustic features in both models
 
-lexical_acoustic_model_test = eelbrain.testnd.TTestRelated('det', 'model', 'acoustic+words+lexical', 'acoustic+words', match='subject', ds=model_data, tail=1, pmin=0.05)
-p = eelbrain.plot.Topomap(lexical_acoustic_model_test, ncol=3, title=lexical_acoustic_model_test)
+lexical_acoustic_model_test = eelbrain.testnd.TTestRelated('det', 'model', 'acoustic+words+lexical', 'acoustic+words', match='subject', data=model_data, tail=1, pmin=0.05)
+print(lexical_acoustic_model_test)
+
+p = eelbrain.plot.Topomap(lexical_acoustic_model_test, ncol=3, title=lexical_acoustic_model_test, clip='circle', h=1.8)
 
 # ## Acoustic responses?
 # Do acoustic predictors have predictive power in the area that's affected?
 
-acoustic_model_test = eelbrain.testnd.TTestRelated('det', 'model', 'acoustic+words', 'words', match='subject', ds=model_data, tail=1, pmin=0.05)
-p = eelbrain.plot.Topomap(acoustic_model_test, ncol=3, title=acoustic_model_test)
+acoustic_model_test = eelbrain.testnd.TTestRelated('det', 'model', 'acoustic+words', 'words', match='subject', data=model_data, tail=1, pmin=0.05)
+p = eelbrain.plot.Topomap(acoustic_model_test, ncol=3, title=acoustic_model_test, clip='circle', h=1.8)
 
 # # Analyze spectrogram by word class
 # If auditory responses can explain the difference in response to function and content words, then that suggests that acoustic properties differ between function and content words. We can analyze this directly with TRFs. 
+#
+# NOTE: This requires `analysis/estimate_word_acoustics.py` to be run first, otherwise the next cell will cause a `FileNotFoundError`.
 
 trf_word = eelbrain.load.unpickle(TRF_DIR / 'gammatone~word.pickle')
 trf_lexical = eelbrain.load.unpickle(TRF_DIR / 'gammatone~word+lexical.pickle')
 
 # Test whether information about the lexical status of the words improves prediction of the acoustic signal. 
 
-ds_word = trf_word.partition_result_data()
-ds_lexical = trf_lexical.partition_result_data()
+data_word = trf_word.partition_result_data()
+data_lexical = trf_lexical.partition_result_data()
 
 # Test and plot predictive power difference
-res = eelbrain.testnd.TTestRelated(ds_lexical['det'], ds_word['det'], tail=1)
-ds_word[:, 'model'] = 'word'
-ds_lexical[:, 'model'] = 'word+lexical'
-ds = eelbrain.combine([ds_word, ds_lexical], incomplete='drop')
-p = eelbrain.plot.UTSStat('det', 'model', match='i_test', ds=ds, title=res, h=2)
+res = eelbrain.testnd.TTestRelated(data_lexical['det'], data_word['det'], tail=1)
+data_word[:, 'model'] = 'word'
+data_lexical[:, 'model'] = 'word+lexical'
+data = eelbrain.combine([data_word, data_lexical], incomplete='drop')
+p = eelbrain.plot.UTSStat('det', 'model', match='i_test', data=data, title=res, h=2)
 
 # For a univariate test, average across frequency
-eelbrain.test.TTestRelated("det.mean('frequency')", 'model', match='i_test', ds=ds)
+eelbrain.test.TTestRelated("det.mean('frequency')", 'model', match='i_test', data=data)
 
 # Compare TRFs
-word_acoustics_difference = eelbrain.testnd.TTestRelated('word + non_lexical', 'word + lexical', ds=ds_lexical)
+word_acoustics_difference = eelbrain.testnd.TTestRelated('word + non_lexical', 'word + lexical', data=data_lexical)
 p = eelbrain.plot.Array(word_acoustics_difference, ncol=3, h=2)
 
 # # Generate figure
@@ -129,10 +137,10 @@ p = eelbrain.plot.Array(word_acoustics_difference, ncol=3, h=2)
 # +
 # Initialize figure
 figure = pyplot.figure(figsize=(7.5, 5))
-gridspec = figure.add_gridspec(4, 9, height_ratios=[2,2,2,2], left=0.05, right=0.95, hspace=0.3)
+gridspec = figure.add_gridspec(4, 9, height_ratios=[2,2,2,2], left=0.05, right=0.95, hspace=0.3, bottom=0.09)
 topo_args = dict(clip='circle')
-det_args = dict(**topo_args, vmax=15, cmap='lux-a')
-cbar_args = dict(label='%', ticks=3, h=.5)
+det_args = dict(**topo_args, vmax=0.001, cmap='lux-gray')
+cbar_args = dict(label='∆ % variability\nexplained', unit=1e-2, ticks=3, h=.5)
 
 # Add predictive power tests
 axes = figure.add_subplot(gridspec[0,0])
@@ -142,10 +150,10 @@ p.plot_colorbar(right_of=axes, **cbar_args)
 
 axes = figure.add_subplot(gridspec[1,0])
 p = eelbrain.plot.Topomap(lexical_acoustic_model_test.masked_difference(), axes=axes, **det_args)
-axes.set_title("Word class\nwith acoustics", loc='left')
+axes.set_title("Word class\ncontrolling for acoustics", loc='left')
 p.plot_colorbar(right_of=axes, **cbar_args)
 
-det_args['vmax'] = 100
+det_args['vmax'] = 0.01
 axes = figure.add_subplot(gridspec[2,0])
 p = eelbrain.plot.Topomap(acoustic_model_test.masked_difference(), axes=axes, **det_args)
 axes.set_title("Acoustics", loc='left')
@@ -177,8 +185,8 @@ axes = [
 ]
 plots = [word_acoustics_difference.c1_mean, word_acoustics_difference.c0_mean, word_acoustics_difference.difference]
 p = eelbrain.plot.Array(plots, axes=axes, axtitle=False)
-axes[0].set_title('Function', loc='left')
-axes[1].set_title('Content', loc='left')
+axes[0].set_title('Function words', loc='left')
+axes[1].set_title('Content words', loc='left')
 axes[2].set_title('Function > Content', loc='left')
 # Add a line to highlight difference
 for ax in axes:
@@ -186,7 +194,8 @@ for ax in axes:
 
 figure.text(0.01, 0.96, 'A) Predictive power', size=10)
 figure.text(0.27, 0.96, 'B) Word class TRFs (without acoustics)', size=10)
-figure.text(0.27, 0.37, 'C) Spectrogram by word class', size=10)
+figure.text(0.27, 0.34, 'C) Spectrogram by word class', size=10)
 
 figure.savefig(DST / 'Word-class-acoustics.pdf')
 figure.savefig(DST / 'Word-class-acoustics.png')
+eelbrain.plot.figure_outline()

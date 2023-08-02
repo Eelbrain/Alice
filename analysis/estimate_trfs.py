@@ -4,7 +4,6 @@ import re
 
 import eelbrain
 import mne
-import trftools
 
 
 STIMULI = [str(i) for i in range(1, 13)]
@@ -24,24 +23,39 @@ gammatone = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-8.pic
 # Resample the spectrograms to 100 Hz (time-step = 0.01 s), which we will use for TRFs
 gammatone = [x.bin(0.01, dim='time', label='start') for x in gammatone]
 # Pad onset with 100 ms and offset with 1 second; make sure to give the predictor a unique name as that will make it easier to identify the TRF later
-gammatone = [trftools.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='gammatone') for x in gammatone]
+gammatone = [eelbrain.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='gammatone') for x in gammatone]
+# Filter the predictor with the same parameters as we will filter the EEG data
+gammatone = [eelbrain.filter_data(x, 0.5, 20) for x in gammatone]
+
 # Load the broad-band envelope and process it in the same way
 envelope = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-1.pickle') for stimulus in STIMULI]
 envelope = [x.bin(0.01, dim='time', label='start') for x in envelope]
-envelope = [trftools.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='envelope') for x in envelope]
+envelope = [eelbrain.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='envelope') for x in envelope]
+envelope = [eelbrain.filter_data(x, 0.5, 20) for x in envelope]
 onset_envelope = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-on-1.pickle') for stimulus in STIMULI]
 onset_envelope = [x.bin(0.01, dim='time', label='start') for x in onset_envelope]
-onset_envelope = [trftools.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='onset') for x in onset_envelope]
+onset_envelope = [eelbrain.pad(x, tstart=-0.100, tstop=x.time.tstop + 1, name='onset') for x in onset_envelope]
+onset_envelope = [eelbrain.filter_data(x, 0.5, 20) for x in onset_envelope]
 # Load onset spectrograms and make sure the time dimension is equal to the gammatone spectrograms
 gammatone_onsets = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-on-8.pickle') for stimulus in STIMULI]
 gammatone_onsets = [x.bin(0.01, dim='time', label='start') for x in gammatone_onsets]
 gammatone_onsets = [eelbrain.set_time(x, gt.time, name='gammatone_on') for x, gt in zip(gammatone_onsets, gammatone)]
+gammatone_onsets = [eelbrain.filter_data(x, 0.5, 20) for x in gammatone_onsets]
+# Load linear and powerlaw scaled spectrograms
+gammatone_lin = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-lin-8.pickle') for stimulus in STIMULI]
+gammatone_lin = [x.bin(0.01, dim='time', label='start') for x in gammatone_lin]
+gammatone_lin = [eelbrain.set_time(x, gt.time, name='gammatone_on') for x, gt in zip(gammatone_lin, gammatone)]
+gammatone_lin = [eelbrain.filter_data(x, 0.5, 20) for x in gammatone_lin]
+gammatone_pow = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~gammatone-pow-8.pickle') for stimulus in STIMULI]
+gammatone_pow = [x.bin(0.01, dim='time', label='start') for x in gammatone_pow]
+gammatone_pow = [eelbrain.set_time(x, gt.time, name='gammatone_on') for x, gt in zip(gammatone_pow, gammatone)]
+gammatone_pow = [eelbrain.filter_data(x, 0.5, 20) for x in gammatone_pow]
 # Load word tables and convert tables into continuous time-series with matching time dimension
 word_tables = [eelbrain.load.unpickle(PREDICTOR_DIR / f'{stimulus}~word.pickle') for stimulus in STIMULI]
-word_onsets = [eelbrain.event_impulse_predictor(gt.time, ds=ds, name='word') for gt, ds in zip(gammatone, word_tables)]
+word_onsets = [eelbrain.event_impulse_predictor(gt.time, data=data, name='word') for gt, data in zip(gammatone, word_tables)]
 # Function and content word impulses based on the boolean variables in the word-tables
-word_lexical = [eelbrain.event_impulse_predictor(gt.time, value='lexical', ds=ds, name='lexical') for gt, ds in zip(gammatone, word_tables)]
-word_nlexical = [eelbrain.event_impulse_predictor(gt.time, value='nlexical', ds=ds, name='non_lexical') for gt, ds in zip(gammatone, word_tables)]
+word_lexical = [eelbrain.event_impulse_predictor(gt.time, value='lexical', data=data, name='lexical') for gt, data in zip(gammatone, word_tables)]
+word_nlexical = [eelbrain.event_impulse_predictor(gt.time, value='nlexical', data=data, name='non_lexical') for gt, data in zip(gammatone, word_tables)]
 
 # Extract the duration of the stimuli, so we can later match the EEG to the stimuli
 durations = [gt.time.tmax for stimulus, gt in zip(STIMULI, gammatone)]
@@ -50,8 +64,13 @@ durations = [gt.time.tmax for stimulus, gt in zip(STIMULI, gammatone)]
 # ------
 # Pre-define models here to have easier access during estimation. In the future, additional models could be added here and the script re-run to generate additional TRFs.
 models = {
-    # Acoustic models
     'envelope': [envelope],
+    # Compare different scales for the acoustic response
+    'gammatone': [gammatone],
+    'gammatone-lin': [gammatone_lin],
+    'gammatone-pow': [gammatone_pow],
+    'gammatone-lin+log': [gammatone_lin, gammatone],
+    # The acoustic edge detection model
     'envelope+onset': [envelope, onset_envelope],
     'acoustic': [gammatone, gammatone_onsets],
     # Models with word-onsets and word-class
@@ -75,7 +94,7 @@ for subject in SUBJECTS:
     # Load the EEG data
     raw = mne.io.read_raw(EEG_DIR / subject / f'{subject}_alice-raw.fif', preload=True)
     # Band-pass filter the raw data between 0.5 and 20 Hz
-    raw.filter(0.5, 20)
+    raw.filter(0.5, 20, n_jobs=1)
     # Interpolate bad channels
     raw.interpolate_bads()
     # Extract the events marking the stimulus presentation from the EEG file

@@ -19,7 +19,6 @@ from pathlib import Path
 import eelbrain
 from matplotlib import pyplot
 import mne
-import trftools
 
 
 # Data locations
@@ -38,7 +37,7 @@ DST.mkdir(exist_ok=True)
 FONT = 'Arial'
 FONT_SIZE = 8
 RC = {
-    'figure.dpi': 150,
+    'figure.dpi': 100,
     'savefig.dpi': 300,
     'savefig.transparent': True,
     # Font
@@ -111,7 +110,7 @@ gammatone_envelope = eelbrain.resample(gammatone_envelope, 100)
 eelbrain.plot.UTS(gammatone_envelope, colors='red', axes=axes[4], ylabel='Gammatone\nEnvelope')
 
 # Use an edge detector model to extract acoustic onsets from the gammatone spectrogram
-gammatone_onsets = trftools.neural.edge_detector(gammatone, 30)
+gammatone_onsets = eelbrain.edge_detector(gammatone, 30)
 eelbrain.plot.Array(gammatone_onsets, axes=axes[5], ylabel='Acoustic\nOnsets', interpolation='none')
 
 # Generate an impulse at every word onset. Use a time dimension with the same properties as the EEG data.
