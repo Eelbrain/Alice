@@ -121,7 +121,7 @@ decorate(ax)
 
 # TRF continuous
 ax_c1 = ax = pyplot.subplot2grid(shape, (5, 0), colspan=7, **ax_args)
-ax.set_title('C) TRF with continuous predictor: each time point elicits a response', loc='left', size=10)
+ax.set_title('C) TRF with a continuous predictor: each time point elicits a response', loc='left', size=10)
 plot = eelbrain.plot.UTS(stimulus_envelope, axes=ax, colors='b', **uts_args)
 decorate(ax)
 stimulus_handle = plot.plots[0].legend_handles['1.wav']
