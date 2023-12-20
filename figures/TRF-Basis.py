@@ -164,5 +164,4 @@ ax.plot(window.time, y0 + window.smooth('time', 0.050).x, color=COLORS['50'])
 ax.plot(window.time.times-0.005, y0 + window.smooth('time', 0.100).x, color=COLORS['100'])
 
 figure.savefig(DST / 'TRF-Basis.pdf')
-figure.savefig(DST / 'TRF-Basis.png')
 eelbrain.plot.figure_outline()

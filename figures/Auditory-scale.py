@@ -165,5 +165,4 @@ res = eelbrain.test.TTestRelated('det_mean', 'scale', 'log', 'power-law', 'subje
 p.mark_pair('power-law', 'log', .23, mark=res.p)
 
 figure.savefig(DST / 'Auditory-Scale.pdf')
-figure.savefig(DST / 'Auditory-Scale.png')
 eelbrain.plot.figure_outline()

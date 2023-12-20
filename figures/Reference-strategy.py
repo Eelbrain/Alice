@@ -130,5 +130,4 @@ figure.text(0.01, 0.96, 'A) Predictive power', size=10)
 figure.text(0.30, 0.96, 'B) Envelope TRF', size=10)
 
 figure.savefig(DST / 'Reference-strategy.pdf')
-figure.savefig(DST / 'Reference-strategy.png')
 eelbrain.plot.figure_outline()

@@ -197,5 +197,4 @@ figure.text(0.27, 0.96, 'B) Word class TRFs (without acoustics)', size=10)
 figure.text(0.27, 0.34, 'C) Spectrogram by word class', size=10)
 
 figure.savefig(DST / 'Word-class-acoustics.pdf')
-figure.savefig(DST / 'Word-class-acoustics.png')
 eelbrain.plot.figure_outline()

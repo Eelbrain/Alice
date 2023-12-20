@@ -149,4 +149,4 @@ for i, ax in enumerate(axes):
 
 fig.tight_layout()
 fig.savefig(DST / 'Time series.pdf')
-fig.savefig(DST / 'Time series.png')
+eelbrain.plot.figure_outline()

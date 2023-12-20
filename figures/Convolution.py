@@ -192,4 +192,4 @@ ax_c1.add_artist(con)
 ax_c1.text(t+0.04, -0.3, '...', ha='left', color='0.5', size=12)
 
 figure.savefig(DST / 'Convolution.pdf')
-figure.savefig(DST / 'Convolution.png')
+eelbrain.plot.figure_outline()

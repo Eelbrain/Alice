@@ -178,5 +178,4 @@ figure.text(0.01, 0.47, 'B) TRF comparison', size=10)
 p.plot_legend((0.53, 0.44), ncols=3)
 
 figure.savefig(DST / 'Simulation boosting vs ridge.pdf')
-figure.savefig(DST / 'Simulation boosting vs ridge.png')
 eelbrain.plot.figure_outline()

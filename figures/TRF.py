@@ -227,4 +227,4 @@ ax_env2.add_artist(con)
 figure.text(0.43, 1.4, 'A', transform=ax_sti2.transAxes, size=10)
 
 figure.savefig(DST / 'Deconvolution.pdf')
-figure.savefig(DST / 'Deconvolution.png')
+eelbrain.plot.figure_outline()

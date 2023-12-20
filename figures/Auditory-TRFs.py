@@ -315,5 +315,4 @@ figure.text(0.01, y_c + 0.04, 'D) Spectrogram + onset spectrogram', size=10)
 figure.text(0.01, y_d + 0.04, 'E) Spectrogram + onset spectrogram: spectro-temporal response functions (STRFs)', size=10)
 
 figure.savefig(DST / 'Auditory-TRFs.pdf')
-figure.savefig(DST / 'Auditory-TRFs.png')
 eelbrain.plot.figure_outline()

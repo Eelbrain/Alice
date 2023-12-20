@@ -171,6 +171,5 @@ figure.text(.01, .98, 'A) Comparison of ERP and TRF at single channel', size=10)
 figure.text(.01, .63, 'B) Comparison of ERP and TRF across channels', size=10)
 figure.text(.01, .33, 'C) Corresponding topographies', size=10)
 
-figure.savefig(DST / 'ERP-TRF.png')
 figure.savefig(DST / 'ERP-TRF.pdf')
 eelbrain.plot.figure_outline()
