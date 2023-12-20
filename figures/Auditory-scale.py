@@ -53,6 +53,7 @@ RC = {
     'legend.fontsize': FONT_SIZE,
 }
 pyplot.rcParams.update(RC)
+pyplot.rcParams['hatch.linewidth'] = 4
 # -
 
 # # Load the data
@@ -66,6 +67,12 @@ MODELS = {
     'log': 'gammatone',
     'linear+log': 'gammatone-lin+log',
 }
+COLORS = {
+    'linear': '#1f77b4',
+    'power-law': '#ff7f0e',
+    'log': '#d62728',
+}
+COLORS['linear+log'] = COLORS['linear']
 datasets = {}
 for scale, model in MODELS.items():
     rows = []
@@ -115,7 +122,7 @@ gammatone_log = (1 + gammatone_lin).log()
 figure = pyplot.figure(figsize=(7.5, 4))
 hs = [1, 1, 1, 1, 1, 1]
 ws = [1, 1, 3, 1]
-gridspec = figure.add_gridspec(len(hs), len(ws), top=0.92, bottom=0.15, left=0.11, right=0.99, hspace=2., wspace=0.1, height_ratios=hs, width_ratios=ws)
+gridspec = figure.add_gridspec(len(hs), len(ws), top=0.92, bottom=0.15, left=0.09, right=0.99, hspace=2., wspace=0.1, height_ratios=hs, width_ratios=ws)
 # Plotting parameters for reusing
 topo_args = dict(clip='circle')
 array_args = dict(xlim=(-0.050, 1.0), axtitle=False)
@@ -129,13 +136,14 @@ t_onset = [0.060, 0.110, 0.180]
 figure.text(0.01, 0.96, 'A) Nonlinear scales', size=10)
 ax = figure.add_subplot(gridspec[0:2, 0])
 x = numpy.linspace(0, 100)
-ax.plot(x, numpy.log(x+1), label='log')
-ax.plot(x, x**0.6/3, label='power-law')
+ax.plot(x, numpy.log(x+1), label='log', color=COLORS['log'], zorder=2.2)
+ax.plot(x, x**0.6/3, label='power-law', color=COLORS['power-law'], zorder=2.1)
+ax.plot(x, x * 0.05, label='linear', color=COLORS['linear'])
 ax.set_ylabel('Brain response')
 ax.set_xlabel('Acoustic power')
 ax.set_xticks(())
 ax.set_yticks(())
-pyplot.legend(loc=(.5,.05))
+pyplot.legend(loc=(.8, .05))
         
 # Spectrograms
 figure.text(0.38, 0.96, 'B', size=10)
@@ -158,11 +166,15 @@ for i, scale in enumerate(SCALES):
 # Predictive power barplot
 figure.text(0.01, 0.55, 'C) Predictive power', size=10)
 ax = figure.add_subplot(gridspec[3:, 0])
-p = eelbrain.plot.Barplot('det_mean * 100', 'scale', match='subject', data=data_det, cells=MODELS, axes=ax, test=False, ylabel='% variability explained', xlabel='Scale', frame=False, xtick_rotation=-30, top=.22)
+p = eelbrain.plot.Barplot('det_mean * 100', 'scale', match='subject', data=data_det, cells=MODELS, axes=ax, test=False, ylabel='% variability explained', xlabel='Scale', frame=False, xtick_rotation=-30, top=.22, colors=COLORS)
 res = eelbrain.test.TTestRelated('det_mean', 'scale', 'power-law', 'linear', 'subject', data=data_det)
 p.mark_pair('linear', 'power-law', .2, mark=res.p)
 res = eelbrain.test.TTestRelated('det_mean', 'scale', 'log', 'power-law', 'subject', data=data_det)
 p.mark_pair('power-law', 'log', .23, mark=res.p)
+# hatch for linear+log bar
+p.bars.patches[-1].set_hatch('//')
+p.bars.patches[-1].set_edgecolor(COLORS['log'])
+p.bars.patches[-1].set_linewidth(0)
 
 figure.savefig(DST / 'Auditory-Scale.pdf')
 eelbrain.plot.figure_outline()
