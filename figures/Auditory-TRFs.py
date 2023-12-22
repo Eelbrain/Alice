@@ -179,7 +179,7 @@ table
 # +
 # Initialize figure
 figure = pyplot.figure(figsize=(7.5, 8))
-gridspec = figure.add_gridspec(10, 10, top=0.95, bottom=0.05, left=0.05, right=0.95, hspace=0.5, height_ratios=[2,2,2,2,2,2,2,2,1,2], width_ratios=[2,2,2,2,2,1,2,2,2,2])
+gridspec = figure.add_gridspec(10, 10, top=0.95, bottom=0.05, left=0.05, right=0.95, hspace=0.5, height_ratios=[2, 2, 2, 2, 2, 2, 2, 2, 1, 2], width_ratios=[2, 2, 2, 2, 2, 1, 2, 2, 2, 2])
 topo_args = dict(clip='circle')
 array_args = dict(xlim=(-0.050, 1.0), axtitle=False)
 topo_array_args = dict(topo_labels='below', **array_args, **topo_args)
