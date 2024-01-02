@@ -1,6 +1,6 @@
 # Alice dataset for Eelbrain
 
-This repository contains scripts and instructions to reproduce the results from the manuscript [*Eelbrain: A toolkit for time-continuous analysis with temporal response functions*](https://doi.org/10.1101/2021.08.01.454687).
+This repository contains scripts and instructions to reproduce the results from [*Eelbrain, a toolkit for time-continuous analysis with temporal response functions*](https://doi.org/10.7554/eLife.85012).
 
 
 # Setup
@@ -49,6 +49,11 @@ This data has been derived from the [original dataset](https://deepblue.lib.umic
 In order to create predictors used in the analysis (and for some plots in the figures), execute the scripts in the `predictors` directory (see [Subdirectories](#subdirectories) below).
 
 All TRFs used in the different figures can be computed and saved using the scripts in the `analysis` directory. However, this may require substantial computing time. To get started faster, the TRFs can also be downloaded from the data repository ([TRFs.zip](https://drum.lib.umd.edu/bitstreams/c46d0bfe-3ca9-496d-b248-8f39d6772b61/download)). Just move the downloaded `TRFs` folder into the `~/Data/Alice` directory, i.e., as `~/Data/Alice/TRFs`.
+
+> [!NOTE]  
+> Replicability: Due to numerical issues, results can differ slightly between different operating systems and hardware used. 
+> Similarly, implementation changes (e.g., optimization) can affect results, even if the underlying algorithms are mathematically equivalent. 
+> Changes in the boosting implementation are noted in the Eelbrain [Version History](https://eelbrain.readthedocs.io/en/stable/changes.html#major-changes).
 
 
 ## Notebooks
