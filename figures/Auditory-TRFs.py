@@ -179,7 +179,7 @@ table
 # +
 # Initialize figure
 figure = pyplot.figure(figsize=(7.5, 8))
-gridspec = figure.add_gridspec(10, 10, top=0.95, bottom=0.05, left=0.05, right=0.95, hspace=0.3, height_ratios=[2,2,2,2,2,2,2,2,1,2], width_ratios=[2,2,2,2,2,1,2,2,2,2])
+gridspec = figure.add_gridspec(10, 10, top=0.95, bottom=0.05, left=0.05, right=0.95, hspace=0.5, height_ratios=[2, 2, 2, 2, 2, 2, 2, 2, 1, 2], width_ratios=[2, 2, 2, 2, 2, 1, 2, 2, 2, 2])
 topo_args = dict(clip='circle')
 array_args = dict(xlim=(-0.050, 1.0), axtitle=False)
 topo_array_args = dict(topo_labels='below', **array_args, **topo_args)
@@ -196,8 +196,8 @@ axes = [
     figure.add_subplot(gridspec[1, 0:3]),
 ]
 eelbrain.plot.Array([gammatone, gammatone_on], axes=axes, axtitle=False, xticklabels=-1, yticklabels=False)
-# axes[0].set_ylabel('Gammatone\nSpectrogram', loc='bottom')
-# axes[1].set_ylabel('Onset\nSpectrogram', loc='bottom')
+axes[0].set_title('Spectrogram (& envelope)', size=FONT_SIZE, loc='left', y=0.91)
+axes[1].set_title('Onset spectrogram (& onsets)', size=FONT_SIZE, loc='left', y=0.91)
 for ax, y in zip(axes, (gammatone, gammatone_on)):
     y = y.sub(time=(1, None)).sum('frequency')
     y -= y.min()
@@ -216,10 +216,10 @@ axes.set_title("Envelope\npredictive power", loc='left')
 p.plot_colorbar(below=axes, offset=0.1, **cbar_args, clipmin=0, ticks=5, label='% variability\nexplained', unit=1e-2)
 # TRF
 axes = [
-    figure.add_subplot(gridspec[0, 7:10]), 
+    figure.add_subplot(gridspec[0, 7:10]),
     figure.add_subplot(gridspec[1, 6]),
     figure.add_subplot(gridspec[1, 7]),
-    figure.add_subplot(gridspec[1, 8]), 
+    figure.add_subplot(gridspec[1, 8]),
     figure.add_subplot(gridspec[1, 9]),
 ]
 p = eelbrain.plot.TopoArray(trf_envelope, t=t_envelope, axes=axes, **topo_array_args)
@@ -238,8 +238,8 @@ p.plot_colorbar(right_of=axes, offset=0., **cbar_args, ticks=3, label='∆ % var
 
 # TRFs
 axes = [
-    figure.add_subplot(gridspec[3, 3:6]), 
-    figure.add_subplot(gridspec[4, 2]), 
+    figure.add_subplot(gridspec[3, 3:6]),
+    figure.add_subplot(gridspec[4, 2]),
     figure.add_subplot(gridspec[4, 3]),
     figure.add_subplot(gridspec[4, 4]),
 ]
@@ -247,11 +247,11 @@ p = eelbrain.plot.TopoArray(trf_eo_onset, t=t_onset, axes=axes, vmin=vmin, vmax=
 axes[0].set_title('Onset TRF', loc='left')
 axes[0].set_yticks(range(0, 61, 15))
 axes = [
-    figure.add_subplot(gridspec[3, 7:10]), 
-    figure.add_subplot(gridspec[4, 6]), 
-    figure.add_subplot(gridspec[4, 7]), 
+    figure.add_subplot(gridspec[3, 7:10]),
+    figure.add_subplot(gridspec[4, 6]),
+    figure.add_subplot(gridspec[4, 7]),
     figure.add_subplot(gridspec[4, 8]),
-    figure.add_subplot(gridspec[4, 9]), 
+    figure.add_subplot(gridspec[4, 9]),
 ]
 p = eelbrain.plot.TopoArray(trf_eo_envelope, t=t_envelope, axes=axes, **topo_array_args, yticklabels=False, ylabel=False)
 axes[0].set_title('Envelope TRF', loc='left')
@@ -268,8 +268,8 @@ p.plot_colorbar(right_of=axes, offset=0., **cbar_args, ticks=3, label='∆ % var
 
 # TRFs
 axes = [
-    figure.add_subplot(gridspec[6, 3:6]), 
-    figure.add_subplot(gridspec[7, 2]), 
+    figure.add_subplot(gridspec[6, 3:6]),
+    figure.add_subplot(gridspec[7, 2]),
     figure.add_subplot(gridspec[7, 3]),
     figure.add_subplot(gridspec[7, 4]),
 ]
@@ -278,10 +278,10 @@ axes[0].set_title('Onset STRF (sum across frequency)', loc='left')
 axes[0].set_yticks(range(0, 61, 15))
 axes = [
     figure.add_subplot(gridspec[6, 7:10]),
-    figure.add_subplot(gridspec[7, 6]), 
+    figure.add_subplot(gridspec[7, 6]),
     figure.add_subplot(gridspec[7, 7]),
-    figure.add_subplot(gridspec[7, 8]), 
-    figure.add_subplot(gridspec[7, 9]), 
+    figure.add_subplot(gridspec[7, 8]),
+    figure.add_subplot(gridspec[7, 9]),
 ]
 p = eelbrain.plot.TopoArray(trf_spectrogram, t=t_envelope, axes=axes, **topo_array_args, yticklabels=False, ylabel=False)
 axes[0].set_title('Envelope STRF (sum across frequency)', loc='left')
@@ -315,5 +315,4 @@ figure.text(0.01, y_c + 0.04, 'D) Spectrogram + onset spectrogram', size=10)
 figure.text(0.01, y_d + 0.04, 'E) Spectrogram + onset spectrogram: spectro-temporal response functions (STRFs)', size=10)
 
 figure.savefig(DST / 'Auditory-TRFs.pdf')
-figure.savefig(DST / 'Auditory-TRFs.png')
 eelbrain.plot.figure_outline()
