@@ -99,6 +99,11 @@ The `figures` directory contains the code used to generate all the figures in th
 This directory contains the scripts that were used to convert the data from the original Alice EEG dataset to the format used here.
 
 
+# Experimental pipeline
+
+The `pipeline` directory contains instructions for using an experimental pipeline that simplifies and streamlines TRF analysis. For more information, see the [Pipeline](pipeline) Readme file.
+
+
 # Further resources
 
 This tutorial and dataset:
