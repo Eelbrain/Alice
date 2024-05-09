@@ -11,10 +11,10 @@ If you're familiar with git, clone this repository. If not, simply download it a
 
 ## Create the Python environment
 
-The easiest way to install all the required libraries is with [conda](https://docs.conda.io/), which comes with the [Anaconda Python distribution](https://www.anaconda.com/products/individual). Once `conda` is installed, simply run, from the directory in which this `README` file is located:
+The easiest way to install all the required libraries is with [Mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html). Once `mamba` is installed, simply run, from the directory in which this `README` file is located:
 
 ```bash
-$ conda env create --file=environment.yml
+$ mamba env create --file=environment.yml
 ```
 
 This will install all the required libraries into a new environment called `eelbrain`. Activate the new environment with:
