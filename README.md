@@ -11,20 +11,7 @@ If you're familiar with git, clone this repository. If not, simply download it a
 
 ## Create the Python environment
 
-The easiest way to install all the required libraries is with [Mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html). Once `mamba` is installed, simply run, from the directory in which this `README` file is located:
-
-```bash
-$ mamba env create --file=environment.yml
-```
-
-This will install all the required libraries into a new environment called `eelbrain`. Activate the new environment with:
-
-```bash
-$ conda activate eelbrain
-```
-
-You will have to activate the environment every time you start a new shell session.
-
+The easiest way to install all the required libraries is using the environment file provided in this repository (`environment.yml`) as described in the [Instructions for installing Eelbrain: Full Setup](https://eelbrain.readthedocs.io/en/latest/installing.html#full-setup).
 
 ## Download the Alice dataset
 

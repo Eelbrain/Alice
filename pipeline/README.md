@@ -11,7 +11,7 @@ The pipeline is implemented in the [TRF-Tools](https://github.com/christianbrodb
 $ pip install --upgrade https://github.com/christianbrodbeck/TRF-Tools/archive/refs/heads/main.zip
 ```
 
-A suitable [environment](environment.yml) file can be found in this folder.
+A suitable [environment](environment.yml) file can be found in the same folder as this README file (see [Instructions for installing Eelbrain: Full Setup](https://eelbrain.readthedocs.io/en/latest/installing.html#full-setup)).
 
 
 ## Getting started
