@@ -5,7 +5,7 @@ This folder demonstrates how to use the experimental TRF-Experiment pipeline wit
 
 ## Installing
 
-The pipeline is implemented in the [TRF-Tools](https://github.com/christianbrodbeck/TRF-Tools) GitHub repository, which can be installed and updated with `pip`:
+The pipeline is implemented in the [TRF-Tools](https://trf-tools.readthedocs.io/) library, which can be installed and updated with `pip`:
 
 ```bash
 $ pip install --upgrade https://github.com/christianbrodbeck/TRF-Tools/archive/refs/heads/main.zip
@@ -18,7 +18,8 @@ A suitable [environment](environment.yml) file can be found in the same folder a
 
 The pipeline assumes the same file system organization for EEG data and predictors as the main tutorial. However, all intermediate files and results will be managed by the pipeline.
 
-If starting from scratch, only the following scripts from the base repository would need to be executed to create the required files before using the pipeline:
+If starting from scratch, only the following scripts from the base repository would need to be executed, 
+to create the files required for the pipeline:
 
  - `download_alice.py` to download the dataset
  - `predictors/make_gammatone.py` to create high resolution gammatone spectrograms
@@ -26,9 +27,9 @@ If starting from scratch, only the following scripts from the base repository wo
  - `predictors/make_word_predictors.py` to create word-based predictors
 
 
-The core of the pipeline is the TRF-Experiment specification in the [`alice.py`](alice.py) file. This experiment can then be imported and used from other Python scripts and notebooks to access data and results. This is demonstrated in the [`Auditory-TRFs.py`](Auditory-TRFs.py) notebook in this folder, which demonstrates an analysis like the original [`figures/Auditory-TRFs.py`](https://github.com/Eelbrain/Alice/blob/main/figures/Auditory-TRFs.py), but using the pipeline instead of the individual TRFs created through the script in the base repository (see the [Alice readme](../#notebooks) on how to restore notebooks from `*.py` files).
+The core of the pipeline is the TRF-Experiment specification in [`alice.py`](alice.py). This experiment can then be imported and used from other Python scripts and notebooks to access data and results. This is demonstrated in the [`Auditory-TRFs.py`](Auditory-TRFs.py) notebook in this folder, which demonstrates an analysis like the original [`figures/Auditory-TRFs.py`](https://github.com/Eelbrain/Alice/blob/main/figures/Auditory-TRFs.py), but using the pipeline instead of the individual TRFs created through the script in the base repository (see the [Alice readme](../#notebooks) on how to restore notebooks from `*.py` files).
 
-The [`TRFExperiment`](https://github.com/christianbrodbeck/TRF-Tools/blob/main/trftools/pipeline/_experiment.py) pipeline is an extension of the Eelbrain [`MneExperiment`](https://eelbrain.readthedocs.io/en/stable/experiment.html) pipeline. Documentation for the functionality of `MneExperiment` is best found in Eelbrain [documentation](http://eelbrain.readthedocs.io/en/stable/). Documentation for the TRF-Experiment extension is currently most easily found in the [source code](https://github.com/christianbrodbeck/TRF-Tools/blob/main/trftools/pipeline/_experiment.py), i.e., it can also directly retrieved using `iPython`'s help functionality.
+The [`TRFExperiment`](https://trf-tools.readthedocs.io/latest/pipeline.html) pipeline is an extension of the Eelbrain [`MneExperiment`](https://eelbrain.readthedocs.io/en/stable/experiment.html) pipeline. It uses `MneExperiment` mechanisms to preprocess data up to the epoch stage. Documentation for the functionality of `MneExperiment` is best found in Eelbrain [documentation](http://eelbrain.readthedocs.io/en/stable/).
 
 
 > [!WARNING]  
