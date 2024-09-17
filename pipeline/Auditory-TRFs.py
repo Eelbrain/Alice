@@ -14,7 +14,7 @@
 # ---
 
 # # Setup
-# Import the pipeline and analysis parameters. On every import, the pipeline checks the definition in `alice.py` for changes and deletes cahced files that have become outdated.
+# Import the pipeline and analysis parameters. On every import, the pipeline checks the TRFExperiment definition in `alice.py` for changes, and deletes cached files that have become outdated.
 
 # +
 from eelbrain import *
@@ -29,7 +29,9 @@ TEST = {
 # -
 
 # # Model comparisons
-# Model comparisons can be directly visualized using the `TRFExperiment.show_model_test` method. For an explanation of the model syntax see the [TRFExperiment](https://github.com/christianbrodbeck/TRF-Tools/blob/main/trftools/pipeline/_experiment.py) top level documentation.
+# Model comparisons can be directly visualized using the `TRFExperiment.show_model_test` method. For an explanation of the model syntax see the [TRFExperiment documentation](https://trf-tools.readthedocs.io/doc/pipeline.html#models).
+#
+# Calling this function assumes that TRFs have already been estimated (see the `jobs.py` file in the same directory). Alternatively, to estimate (and cache) the TRFs on the fly, add another parameter: `make=True` (note that this may take a while).
 
 alice.show_model_test('gammatone-1 +@ gammatone-on-1', **PARAMETERS, **TEST)
 
