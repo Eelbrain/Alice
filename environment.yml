@@ -12,5 +12,5 @@ dependencies:
 - jupytext
 - seaborn
 - pip:
-  - https://github.com/christianbrodbeck/gammatone/archive/fmax.zip
+  - gammatone
   - https://github.com/Hugo-W/pyEEG/archive/refs/heads/master.zip
