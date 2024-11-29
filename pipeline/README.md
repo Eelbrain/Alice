@@ -27,7 +27,9 @@ to create the files required for the pipeline:
  - `predictors/make_word_predictors.py` to create word-based predictors
 
 
-The core of the pipeline is the TRF-Experiment specification in [`alice.py`](alice.py). This experiment can then be imported and used from other Python scripts and notebooks to access data and results. This is demonstrated in the [`Auditory-TRFs.py`](Auditory-TRFs.py) notebook in this folder, which demonstrates an analysis like the original [`figures/Auditory-TRFs.py`](https://github.com/Eelbrain/Alice/blob/main/figures/Auditory-TRFs.py), but using the pipeline instead of the individual TRFs created through the script in the base repository (see the [Alice readme](../#notebooks) on how to restore notebooks from `*.py` files).
+The core of the pipeline is the TRF-Experiment specification in [`alice.py`](alice.py). 
+This experiment can then be imported and used from other Python scripts and notebooks to access data and results.
+This is demonstrated in the [`Auditory-TRFs.py`](Auditory-TRFs.py) notebook in this folder, which performs an analysis similar to the original [`figures/Auditory-TRFs.py`](https://github.com/Eelbrain/Alice/blob/main/figures/Auditory-TRFs.py), but using the pipeline instead of the individual TRFs created through the script in the base repository (see the [Alice readme](../#notebooks) on how to restore notebooks from `*.py` files).
 
 The [`TRFExperiment`](https://trf-tools.readthedocs.io/latest/pipeline.html) pipeline is an extension of the Eelbrain [`MneExperiment`](https://eelbrain.readthedocs.io/en/stable/experiment.html) pipeline. It uses `MneExperiment` mechanisms to preprocess data up to the epoch stage. Documentation for the functionality of `MneExperiment` is best found in Eelbrain [documentation](http://eelbrain.readthedocs.io/en/stable/).
 

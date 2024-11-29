@@ -54,10 +54,11 @@ Many Python scripts in this repository are actually [Jupyter](https://jupyter.or
 #     formats: ipynb,py:light
 ```
 
-These scripts were converted to Python scripts with [Jupytext](http://jupytext.readthedocs.io) for efficient management with git. To turn such a script back into a notebook, run this command (assuming the script is called `notebook.py`):
+These scripts were converted to Python scripts with [Jupytext](http://jupytext.readthedocs.io) for efficient management with git. 
+To turn such a script back into a notebook, run this command (assuming the script is called `my_trf_analysis.py`):
 
 ```bash
-$ jupytext --to notebook notebook.py
+$ jupytext --to notebook my_trf_analysis.py
 ```
 
 # Subdirectories <a name="subdirectories"></a>
