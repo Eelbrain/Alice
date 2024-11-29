@@ -1,18 +1,13 @@
 # Author: Proloy Das <pdas6@mgh.harvard.edu>
 # License: MIT
 """
-Usage: run the script without any arguments (downloaded at default location):
-  `python download_alice.py`
-Or with a valid pathname argument (downloaded at pathname):
-  `python download_alice /home/xyz/me2/`
-The script creates `.temppath.pickled` which contains the download location,
-for tracking purpose.
-The download location could be traced using following code snippet:
-```
-from download_alice import data_path
-path = data_path()
-```
-It will download and extract the data in case the contents are missing.
+Usage: run the script without any arguments (downloaded at default location)::
+
+    $ python download_alice.py
+
+Or with a valid pathname argument (downloaded at pathname)::
+
+    $ python download_alice.py /home/xyz/alice_data
 
 Disclaimer: The following functions are heavily inspired by the namesake
 functions in mne/datasets/utils.py and mne/utils/check.py which are
@@ -55,11 +50,6 @@ from urllib.request import urlretrieve
 from mne.utils import logger
 from mne.utils.numerics import hashfunc
 
-from eelbrain import load, save
-
-
-tempfile = op.realpath(os.path.join(__file__, '..', ".temppath.pickled"))
-ALICE_DATA = None if not op.isfile(tempfile) else load.unpickle(tempfile)
 
 _alice_license_text = """
 This dataset accompanies "Eelbrain: A Python toolkit for time-continuous
@@ -86,21 +76,8 @@ def _get_path(path, name):
         if not isinstance(path, str):
             raise ValueError('path must be a string or None')
         return path
-    # 2. get_config(key)
-    # 3. get_config('MNE_DATA')
-    path = ALICE_DATA
-    if path is not None:
-        if not op.exists(path):
-            msg = (f"Download location {path} as specified by ALICE_DATA does "
-                   f"not exist. Either create this directory manually and try "
-                   f"again, or set ALICE_DATA to an existing directory.")
-            raise FileNotFoundError(msg)
-        return path
-    # 4. ~/mne_data (but use a fake home during testing so we don't
-    #    unnecessarily create ~/mne_data)
     logger.info('Using default location ~/Data/Alice for %s...' % name)
-    path = op.join(os.getenv('_ALICE_FAKE_HOME_DIR', op.expanduser("~")),
-                   'Data', 'Alice')
+    path = op.join(os.getenv('_ALICE_FAKE_HOME_DIR', op.expanduser("~")), 'Data', 'Alice')
     if not op.exists(path):
         logger.info(f'Creating {path}')
         try:
@@ -338,5 +315,3 @@ if __name__ == '__main__':
         raise ValueError(f'{sys.argv[1]} is not a valid pathname.'
                          f'Run script either with a valid path argument or'
                          f'or without any argument.')
-
-    save.pickle(path, tempfile)
